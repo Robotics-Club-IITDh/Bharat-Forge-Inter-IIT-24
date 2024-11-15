@@ -23,3 +23,5 @@ launching the bot itself
 # Current issues
 THE CONTROLLER DOESN'T F****NG WORK
   atleast the robot spawns... for now
+
+- Might give a building error for CMakeList
