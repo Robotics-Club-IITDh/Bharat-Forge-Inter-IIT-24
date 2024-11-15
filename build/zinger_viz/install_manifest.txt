@@ -1,0 +1,17 @@
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/zinger_viz/launch/view_robot.launch.py
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/zinger_viz/rviz/robot.rviz
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/ament_index/resource_index/package_run_dependencies/zinger_viz
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/ament_index/resource_index/parent_prefix_path/zinger_viz
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/zinger_viz/environment/ament_prefix_path.sh
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/zinger_viz/environment/ament_prefix_path.dsv
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/zinger_viz/environment/path.sh
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/zinger_viz/environment/path.dsv
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/zinger_viz/local_setup.bash
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/zinger_viz/local_setup.sh
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/zinger_viz/local_setup.zsh
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/zinger_viz/local_setup.dsv
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/zinger_viz/package.dsv
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/ament_index/resource_index/packages/zinger_viz
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/zinger_viz/cmake/zinger_vizConfig.cmake
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/zinger_viz/cmake/zinger_vizConfig-version.cmake
+/home/cobaltboy/ROS2/omni/install/zinger_viz/share/zinger_viz/package.xml
