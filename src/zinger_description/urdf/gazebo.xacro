@@ -4,7 +4,7 @@
     <!--
         GAZEBO MACROS
     -->
-    <!--
+    <!-- 
         Define Gazebo specific macro's here because this file isn't included if we're not running
         Gazebo
     -->
@@ -26,58 +26,57 @@
     <xacro:macro name="gazebo_sensor_imu" params="name update_rate:=25" >
         <gazebo reference="link_sensor_imu_${name}">
             <sensor name="${name}" type="imu">
-                <ignition_frame_id>link_sensor_imu_${name}</ignition_frame_id>
                 <always_on>true</always_on>
                 <update_rate>${update_rate}</update_rate>
                 <imu>
                     <angular_velocity>
-                    <x>
-                        <noise type="gaussian">
-                        <mean>0.0</mean>
-                        <stddev>0.0</stddev>
-                        </noise>
-                    </x>
-                    <y>
-                        <noise type="gaussian">
-                        <mean>0.0</mean>
-                        <stddev>0.0</stddev>
-                        </noise>
-                    </y>
-                    <z>
-                        <noise type="gaussian">
-                        <mean>0.0</mean>
-                        <stddev>0.0</stddev>
-                        </noise>
-                    </z>
+                        <x>
+                            <noise type="gaussian">
+                                <mean>0.0</mean>
+                                <stddev>0.0</stddev>
+                            </noise>
+                        </x>
+                        <y>
+                            <noise type="gaussian">
+                                <mean>0.0</mean>
+                                <stddev>0.0</stddev>
+                            </noise>
+                        </y>
+                        <z>
+                            <noise type="gaussian">
+                                <mean>0.0</mean>
+                                <stddev>0.0</stddev>
+                            </noise>
+                        </z>
                     </angular_velocity>
                     <linear_acceleration>
-                    <x>
-                        <noise type="gaussian">
-                        <mean>0.0</mean>
-                        <stddev>0.0</stddev>
-                        </noise>
-                    </x>
-                    <y>
-                        <noise type="gaussian">
-                        <mean>0.0</mean>
-                        <stddev>0.0</stddev>
-                        </noise>
-                    </y>
-                    <z>
-                        <noise type="gaussian">
-                        <mean>0.0</mean>
-                        <stddev>0.0</stddev>
-                        </noise>
-                    </z>
+                        <x>
+                            <noise type="gaussian">
+                                <mean>0.0</mean>
+                                <stddev>0.0</stddev>
+                            </noise>
+                        </x>
+                        <y>
+                            <noise type="gaussian">
+                                <mean>0.0</mean>
+                                <stddev>0.0</stddev>
+                            </noise>
+                        </y>
+                        <z>
+                            <noise type="gaussian">
+                                <mean>0.0</mean>
+                                <stddev>0.0</stddev>
+                            </noise>
+                        </z>
                     </linear_acceleration>
                 </imu>
-                <plugin
-                        filename="libignition-gazebo-imu-system.so"
-                        name="ignition::gazebo::systems::Imu">
-                    <alwaysOn>true</alwaysOn>
-                    <updateRate>25</updateRate>
-                    <topic>imu</topic>
-                    <imuName>imu_center</imuName>
+                <plugin name="imu_plugin" filename="libgazebo_ros_imu_sensor.so">
+                    <topicName>imu</topicName>
+                    <frameName>link_sensor_imu_${name}</frameName>
+                    <updateRateHZ>25</updateRateHZ>
+                    <gaussianNoise>0.0</gaussianNoise>
+                    <xyzOffset>0 0 0</xyzOffset>
+                    <rpyOffset>0 0 0</rpyOffset>
                 </plugin>
             </sensor>
         </gazebo>
@@ -89,17 +88,11 @@
 
     <xacro:macro name="gazebo_sensor_rplidar" params="name" >
         <gazebo reference="link_sensor_lidar_${name}">
-            <sensor name="${name}" type="gpu_lidar">
-                <!--
-                    Move the sensor up slightly from the bottom of the lidar unit.
-                -->
+            <sensor type="ray" name="${name}">
                 <pose>0 0 0.02 0 0 0</pose>
-                <alwaysOn>true</alwaysOn>
-                <topic>rplidar_front/scan</topic>
+                <always_on>true</always_on>
                 <update_rate>25</update_rate>
-                <lidarName>rplidar_front</lidarName>
                 <visualize>true</visualize>
-                <ignition_frame_id>link_sensor_lidar_${name}</ignition_frame_id>
                 <ray>
                     <scan>
                         <horizontal>
@@ -121,10 +114,9 @@
                         <resolution>0.01</resolution>
                     </range>
                 </ray>
-                <plugin
-                    filename="libignition-gazebo-sensors-system.so"
-                    name="ignition::gazebo::systems::Sensors">
-                    <render_engine>ogre2</render_engine>
+                <plugin name="gazebo_ros_head_rplidar_controller" filename="libgazebo_ros_laser.so">
+                    <topicName>rplidar_front/scan</topicName>
+                    <frameName>link_sensor_lidar_${name}</frameName>
                 </plugin>
             </sensor>
         </gazebo>
@@ -146,25 +138,19 @@
     <xacro:gazebo_sensor_rplidar name="rplidar_front" />
 
     <gazebo>
-        <plugin
-                filename="ign_ros2_control-system"
-                name="ign_ros2_control::IgnitionROS2ControlPlugin">
-            <parameters>$(find zinger_description)/config/zinger.yaml</parameters>
+        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+            <robotNamespace>/zinger</robotNamespace>
+            <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+            <legacyModeNS>true</legacyModeNS>
         </plugin>
     </gazebo>
+    
     <gazebo>
-         <plugin
-                filename="libignition-gazebo-pose-publisher-system.so"
-                name="ignition::gazebo::systems::PosePublisher">
-            <publish_link_pose>true</publish_link_pose>
-            <publish_sensor_pose>true</publish_sensor_pose>
-            <publish_collision_pose>false</publish_collision_pose>
-            <publish_visual_pose>false</publish_visual_pose>
-            <publish_model_pose>true</publish_model_pose>
-            <publish_nested_model_pose>true</publish_nested_model_pose>
-            <use_pose_vector_msg>true</use_pose_vector_msg>
-            <static_publisher>true</static_publisher>
-            <static_update_frequency>-1</static_update_frequency>
+        <plugin name="gazebo_ros_joint_pose_trajectory" filename="libgazebo_ros_joint_pose_trajectory.so">
+            <robotNamespace>/zinger</robotNamespace>
+            <updateRate>25</updateRate>
+            <topicName>pose</topicName>
+            <frameName>world</frameName>
         </plugin>
     </gazebo>
 </robot>

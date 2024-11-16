@@ -12,6 +12,21 @@ This is an official repository for the Bharat Forge problem statement for Inter 
 # Setup and Usage
 First, get to the source folder and initialize setup file for each terminal you are gonna use
 
+# IMPORTANT!!!
+For the program to build in your system correctly, you have to make sure the `CMakeCache.txt` has some following edits
+```
+zinger_description_SOURCE_DIR
+zinger_description_BINARY_DIR
+CMAKE_INSTALL_PREFIX
+AMENT_TEST_RESULTS_DIR
+CMAKE_HOME_DIRECTORY
+CMAKE_CACHEFILE_DIR
+```
+
+The addresses here have to be replaced by the equivalent address on YOUR LOCAL MACHINE!
+
+# Launching
+
 ### Terminal 1
 launching the Swerve Controller
 ```ros2 launch zinger_swerve_controller swerve_controller.launch.py use_sim_time:=true```
