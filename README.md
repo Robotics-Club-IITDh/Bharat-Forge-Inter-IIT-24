@@ -17,6 +17,10 @@ launching the Swerve Controller
 ```ros2 launch zinger_swerve_controller swerve_controller.launch.py use_sim_time:=true```
 
 ### Terminal 2
+launching the Controller Manager
+```ros2 launch zinger_description controller_manager.launch.py```
+
+### Terminal 2
 launching the bot itself
 ```ros2 launch zinger_ignition ignition.launch.py rviz:=true world:=empty_world```
 
