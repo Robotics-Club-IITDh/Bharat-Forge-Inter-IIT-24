@@ -1,0 +1,44 @@
+[0.498s] Invoking command in '/home/cobaltboy/ROS2/SLAM/src/slam': PYTHONPATH=/home/cobaltboy/ROS2/SLAM/build/slam/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/cobaltboy/ROS2/SLAM/install/slam/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../../build/slam build --build-base /home/cobaltboy/ROS2/SLAM/build/slam/build install --record /home/cobaltboy/ROS2/SLAM/build/slam/install.log --single-version-externally-managed install_data
+[0.683s] running egg_info
+[0.684s] creating ../../build/slam/slam.egg-info
+[0.684s] writing ../../build/slam/slam.egg-info/PKG-INFO
+[0.684s] writing dependency_links to ../../build/slam/slam.egg-info/dependency_links.txt
+[0.684s] writing entry points to ../../build/slam/slam.egg-info/entry_points.txt
+[0.684s] writing requirements to ../../build/slam/slam.egg-info/requires.txt
+[0.684s] writing top-level names to ../../build/slam/slam.egg-info/top_level.txt
+[0.684s] writing manifest file '../../build/slam/slam.egg-info/SOURCES.txt'
+[0.685s] reading manifest file '../../build/slam/slam.egg-info/SOURCES.txt'
+[0.686s] writing manifest file '../../build/slam/slam.egg-info/SOURCES.txt'
+[0.686s] running build
+[0.686s] running build_py
+[0.686s] creating /home/cobaltboy/ROS2/SLAM/build/slam/build
+[0.686s] creating /home/cobaltboy/ROS2/SLAM/build/slam/build/lib
+[0.687s] creating /home/cobaltboy/ROS2/SLAM/build/slam/build/lib/slam
+[0.687s] copying slam/operatorNode.py -> /home/cobaltboy/ROS2/SLAM/build/slam/build/lib/slam
+[0.687s] copying slam/__init__.py -> /home/cobaltboy/ROS2/SLAM/build/slam/build/lib/slam
+[0.687s] running install
+[0.687s] running install_lib
+[0.687s] creating /home/cobaltboy/ROS2/SLAM/install/slam/lib/python3.10/site-packages/slam
+[0.688s] copying /home/cobaltboy/ROS2/SLAM/build/slam/build/lib/slam/operatorNode.py -> /home/cobaltboy/ROS2/SLAM/install/slam/lib/python3.10/site-packages/slam
+[0.688s] copying /home/cobaltboy/ROS2/SLAM/build/slam/build/lib/slam/__init__.py -> /home/cobaltboy/ROS2/SLAM/install/slam/lib/python3.10/site-packages/slam
+[0.688s] byte-compiling /home/cobaltboy/ROS2/SLAM/install/slam/lib/python3.10/site-packages/slam/operatorNode.py to operatorNode.cpython-310.pyc
+[0.688s] byte-compiling /home/cobaltboy/ROS2/SLAM/install/slam/lib/python3.10/site-packages/slam/__init__.py to __init__.cpython-310.pyc
+[0.689s] running install_data
+[0.689s] creating /home/cobaltboy/ROS2/SLAM/install/slam/share/ament_index
+[0.689s] creating /home/cobaltboy/ROS2/SLAM/install/slam/share/ament_index/resource_index
+[0.689s] creating /home/cobaltboy/ROS2/SLAM/install/slam/share/ament_index/resource_index/packages
+[0.689s] copying resource/slam -> /home/cobaltboy/ROS2/SLAM/install/slam/share/ament_index/resource_index/packages
+[0.689s] copying package.xml -> /home/cobaltboy/ROS2/SLAM/install/slam/share/slam
+[0.689s] creating /home/cobaltboy/ROS2/SLAM/install/slam/share/slam/urdf
+[0.689s] copying urdf/car.urdf.xacro -> /home/cobaltboy/ROS2/SLAM/install/slam/share/slam/urdf
+[0.689s] creating /home/cobaltboy/ROS2/SLAM/install/slam/share/slam/config
+[0.689s] copying config/controller.yaml -> /home/cobaltboy/ROS2/SLAM/install/slam/share/slam/config
+[0.689s] creating /home/cobaltboy/ROS2/SLAM/install/slam/share/slam/launch
+[0.689s] copying launch/launch.py -> /home/cobaltboy/ROS2/SLAM/install/slam/share/slam/launch
+[0.689s] copying config/mapper_params_online_async.yaml -> /home/cobaltboy/ROS2/SLAM/install/slam/share/slam/config
+[0.689s] running install_egg_info
+[0.692s] Copying ../../build/slam/slam.egg-info to /home/cobaltboy/ROS2/SLAM/install/slam/lib/python3.10/site-packages/slam-0.0.0-py3.10.egg-info
+[0.692s] running install_scripts
+[0.709s] Installing operatorNode script to /home/cobaltboy/ROS2/SLAM/install/slam/lib/slam
+[0.709s] writing list of installed files to '/home/cobaltboy/ROS2/SLAM/build/slam/install.log'
+[0.735s] Invoked command in '/home/cobaltboy/ROS2/SLAM/src/slam' returned '0': PYTHONPATH=/home/cobaltboy/ROS2/SLAM/build/slam/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/cobaltboy/ROS2/SLAM/install/slam/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated setup.py egg_info --egg-base ../../build/slam build --build-base /home/cobaltboy/ROS2/SLAM/build/slam/build install --record /home/cobaltboy/ROS2/SLAM/build/slam/install.log --single-version-externally-managed install_data
