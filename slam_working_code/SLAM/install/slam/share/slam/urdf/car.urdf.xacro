@@ -1,1 +1,224 @@
-/home/cobaltboy/ROS2/SLAM/build/slam/urdf/car.urdf.xacro
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="diff_drive_robot">
+    <!-- Material Definitions -->
+    <material name="blue">
+        <color rgba="0 0 1 1"/>
+    </material>
+    <material name="black">
+        <color rgba="0 0 0 1"/>
+    </material>
+    <material name="gray">
+        <color rgba="0.5 0.5 0.5 1"/>
+    </material>
+
+    <!-- Add this near the top of your URDF, before base_link -->
+    <link name="odom"/>
+
+    <joint name="odom_joint" type="fixed">
+        <parent link="odom"/>
+        <child link="base_link"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Robot Physical Description -->
+    <link name="base_link">
+        <visual>
+            <geometry>
+                <box size="0.4 0.3 0.1"/>
+            </geometry>
+            <material name="blue"/>
+        </visual>
+        <collision>
+            <geometry>
+                <box size="0.4 0.3 0.1"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="2.0"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.02"/>
+        </inertial>
+    </link>
+
+    <!-- Left Wheel -->
+    <link name="left_wheel">
+        <visual>
+            <geometry>
+                <cylinder length="0.02" radius="0.05"/>
+            </geometry>
+            <material name="black"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder length="0.02" radius="0.05"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.5"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
+        </inertial>
+    </link>
+
+    <joint name="left_wheel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="left_wheel"/>
+        <origin xyz="0.10 0.15 -0.05" rpy="-1.5707 0 0"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+
+    <!-- Right Wheel -->
+    <link name="right_wheel">
+        <visual>
+            <geometry>
+                <cylinder length="0.02" radius="0.05"/>
+            </geometry>
+            <material name="black"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder length="0.02" radius="0.05"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.5"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
+        </inertial>
+    </link>
+
+    <joint name="right_wheel_joint" type="continuous">
+        <parent link="base_link"/>
+        <child link="right_wheel"/>
+        <origin xyz="0.10 -0.15 -0.05" rpy="-1.5707 0 0"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+
+    <!-- ADD THE LIDAR SHIFTED TO +0.10m -->
+    <link name="lazer_frame">
+      <visual>
+          <geometry>
+              <cylinder radius="0.05" length="0.06"/>
+          </geometry>
+          <material name="red"/>
+      </visual>
+      <collision>
+          <geometry>
+              <cylinder radius="0.15" length="0.30"/>
+          </geometry>
+      </collision>
+      <inertial>
+          <mass value="1"/>
+          <origin xyz="0 0 0"/>
+          <inertia ixx="0.002858" ixy="0" ixz="0" 
+                  iyy="0.002858" iyz="0" 
+                  izz="0.005625"/>
+      </inertial>
+  </link>
+  <joint name = "lazer_joint" type="fixed">
+      <parent link="base_link"/>
+      <child link="lazer_frame"/>
+      <origin xyz = "0.10 0 0.10" rpy = "0 0 0"/>
+  </joint>
+
+  <!-- Gazebo Plugin -->
+  <gazebo reference="lazer_frame">
+    <sensor name="lazer" type="ray">
+        <pose>0 0 0 0 0 0</pose>
+        <visualize>true</visualize>
+        <update_rate>10</update_rate>
+        <ray>
+            <scan>
+                <horizontal>
+                    <samples>360</samples>
+                    <resolution>1</resolution>
+                    <min_angle>-3.14</min_angle>
+                    <max_angle>3.14</max_angle>
+                </horizontal>
+            </scan>
+            <range>
+                <min>0.3</min>
+                <max>12</max>
+                <resolution>1</resolution>
+            </range>
+        </ray>
+        <plugin name="laser_controller" filename = "libgazebo_ros_ray_sensor.so">
+            <ros>
+                <remapping>~/out:=/scan</remapping>
+            </ros>
+            <output_type>sensor_msgs/LaserScan</output_type>
+            <frame_name>lazer_frame</frame_name>
+        </plugin>
+    </sensor>
+</gazebo>
+
+
+    <!-- Caster Wheel -->
+    <link name="caster_wheel">
+        <visual>
+            <geometry>
+                <sphere radius="0.05"/>
+            </geometry>
+            <material name="gray"/>
+        </visual>
+        <collision>
+            <geometry>
+                <sphere radius="0.05"/>
+            </geometry>
+        </collision>
+        <inertial>
+            <mass value="0.1"/>
+            <origin xyz="0 0 0"/>
+            <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
+        </inertial>
+    </link>
+
+    <joint name="caster_wheel_joint" type="fixed">
+        <parent link="base_link"/>
+        <child link="caster_wheel"/>
+        <origin xyz="-0.15 0.0 -0.05" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Gazebo Plugin Configurations -->
+    <gazebo>
+        <plugin name="gazebo_ros2_control" filename="libgazebo_ros2_control.so">
+            <parameters>$(find slam)/config/controller.yaml</parameters>
+        </plugin>
+    </gazebo>
+
+    <!-- Add Gazebo properties for the wheels -->
+    <gazebo reference="left_wheel">
+        <material>Gazebo/Black</material>
+        <mu1>1.0</mu1>
+        <mu2>1.0</mu2>
+    </gazebo>
+
+    <gazebo reference="right_wheel">
+        <material>Gazebo/Black</material>
+        <mu1>1.0</mu1>
+        <mu2>1.0</mu2>
+    </gazebo>
+
+    <gazebo reference="caster_wheel">
+        <material>Gazebo/Gray</material>
+        <mu1>0.1</mu1>
+        <mu2>0.1</mu2>
+    </gazebo>
+
+    <!-- ROS2 Control Tags -->
+    <ros2_control name="diff_drive_robot_controller" type="system">
+        <hardware>
+            <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+        </hardware>
+        <joint name="left_wheel_joint">
+            <command_interface name="velocity"/>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
+        </joint>
+        <joint name="right_wheel_joint">
+            <command_interface name="velocity"/>
+            <state_interface name="velocity"/>
+            <state_interface name="position"/>
+        </joint>
+    </ros2_control>
+</robot>

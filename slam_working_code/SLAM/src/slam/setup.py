@@ -1,5 +1,6 @@
 from setuptools import find_packages, setup
-
+import os
+from glob import glob
 package_name = 'slam'
 
 setup(
@@ -13,7 +14,10 @@ setup(
         ('share/' + package_name + '/urdf', ['urdf/car.urdf.xacro']),
         ('share/' + package_name + '/config', ['config/controller.yaml']),
         ('share/' + package_name + '/launch', ['launch/launch.py']),
-        ('share/' + package_name + '/config', ['config/mapper_params_online_async.yaml'])
+        ('share/' + package_name + '/config', ['config/mapper_params_online_async.yaml']),  # Added comma here
+        (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
+        (os.path.join('share', package_name, 'config'), glob('config/*')),
+        (os.path.join('share', package_name, 'urdf'), glob('urdf/*'))  # Removed extra comma
     ],
     install_requires=['setuptools'],
     zip_safe=True,

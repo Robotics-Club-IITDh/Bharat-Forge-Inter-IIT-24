@@ -6,7 +6,7 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, Regi
 from launch.substitutions import LaunchConfiguration, Command
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.event_handlers import OnProcessExit
-from launch.actions import TimerAction
+
 def generate_launch_description():
     # Package directories
     pkg_dir = get_package_share_directory('slam')
@@ -81,7 +81,8 @@ def generate_launch_description():
         )
     )
 
-    return LaunchDescription([
+    # Create LaunchDescription and add actions
+    ld = LaunchDescription([
         declare_use_sim_time_cmd,
 
         # Launch Gazebo
@@ -101,15 +102,6 @@ def generate_launch_description():
         joint_state_broadcaster_spawner,
         delayed_diff_drive_spawner,
 
-        # Start the operator node
-        Node(
-            package='slam',
-            executable='operatorNode',
-            name='operator_node',
-            output='screen',
-            parameters=[{'use_sim_time': use_sim_time}],
-        ),
-
         # SLAM Toolbox
         Node(
             package='slam_toolbox',
@@ -122,18 +114,24 @@ def generate_launch_description():
             ],
         ),
 
-        # Add RViz
-        TimerAction(
-    period=2.0,
-    actions=[
+        # Include RViz launch
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(pkg_dir, 'launch', 'rviz.launch.py')
+            ),
+            launch_arguments={
+                'use_sim_time': use_sim_time
+            }.items()
+        ),
+
+        # Start the operator node
         Node(
-            package='rviz2',
-            executable='rviz2',
-            name='rviz2',
+            package='slam',
+            executable='operatorNode',
+            name='operator_node',
             output='screen',
             parameters=[{'use_sim_time': use_sim_time}],
-            arguments=['-d', os.path.join(pkg_dir, 'config', 'slam.rviz')],
-            )
-        ]
-    )    
-])
+        ),
+    ])
+    
+    return ld
