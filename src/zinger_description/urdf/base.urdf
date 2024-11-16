@@ -165,7 +165,7 @@
   </gazebo>
   <gazebo>
     <plugin filename="ign_ros2_control-system" name="ign_ros2_control::IgnitionROS2ControlPlugin">
-      <parameters>/home/cobaltboy/ROS2/omni/install/zinger_description/share/zinger_description/config/zinger.yaml</parameters>
+      <parameters>/home/cobaltboy/ROS2/Bharat-Forge-Inter-IIT-24/install/zinger_description/share/zinger_description/config/zinger.yaml</parameters>
     </plugin>
   </gazebo>
   <gazebo>
@@ -646,4 +646,3 @@
   <!-- IR -->
   <!-- Cliff sensors -->
 </robot>
-
