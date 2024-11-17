@@ -43,7 +43,7 @@ ros2 launch slam launch.py
 
 Terminal 3: For Launching RViz2 for visualizing data
 ```
-ros2 run rviz2 rviz2 -d install/share/slam/config/slam.rviz
+ros2 run rviz2 rviz2 -d install/slam/share/slam/config/slam.rviz
 ```
 
 Using the Teleops Keyboard, run around and create a map, once the map is successfully created, one can use the 2D Target Pose button on top bar of RViz2 and click on point on map to have the Bot run to it...
