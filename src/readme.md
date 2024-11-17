@@ -34,7 +34,7 @@ source install/setup.bash
 ### Now run these commands
 Terminal 1: For running Teleops Keyboard
 ```
-ros2 run teleops_twist_keyboard teleops_twist_keyboard
+ros2 run teleop_twist_keyboard teleop_twist_keyboard
 ```
 
 Terminal 2: For Launching the Gazebo world, and spawning model with slam and nav2 pkgs
