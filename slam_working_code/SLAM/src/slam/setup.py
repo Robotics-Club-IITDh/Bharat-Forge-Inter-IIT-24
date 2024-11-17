@@ -28,7 +28,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'operatorNode = motor_controller.operatorNode:main'
+            'operatorNode = slam.operatorNode:main'
         ],
     },
 )
