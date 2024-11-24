@@ -153,6 +153,9 @@
 </gazebo>
 
 
+    <!-- IMU sensor -->
+     
+
     <!-- Caster Wheel -->
     <link name="caster_wheel">
         <visual>

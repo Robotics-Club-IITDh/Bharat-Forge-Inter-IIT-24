@@ -11,6 +11,7 @@ def generate_launch_description():
     # Package directories
     pkg_dir = get_package_share_directory('slam')
     gazebo_ros_dir = get_package_share_directory('gazebo_ros')
+    nav2_bringup_dir = get_package_share_directory('nav2_bringup')
     
     # Paths
     xacro_file = os.path.join(pkg_dir, 'urdf', 'car.urdf.xacro')
@@ -19,15 +20,30 @@ def generate_launch_description():
     
     # Launch configuration variables
     use_sim_time = LaunchConfiguration('use_sim_time')
+    map_yaml_file = LaunchConfiguration('map')
+    params_file = LaunchConfiguration('params_file')
     
     # Declare launch arguments
     declare_use_sim_time_cmd = DeclareLaunchArgument(
         'use_sim_time',
         default_value='true',
         description='Use simulation (Gazebo) clock if true')
+        
+    declare_params_file_cmd = DeclareLaunchArgument(
+        'params_file',
+        default_value=os.path.join(nav2_bringup_dir, 'params', 'nav2_params.yaml'),
+        description='Full path to the ROS2 parameters file to use for all launched nodes')
+
+    declare_map_yaml_cmd = DeclareLaunchArgument(
+        'map',
+        default_value='',
+        description='Full path to map yaml file to load')
     
     # Get URDF via xacro
     robot_description = {'robot_description': Command(['xacro ', xacro_file])}
+
+    # RViz Config file
+    rviz_config_file = os.path.join(pkg_dir, 'config', 'slam.rviz')
 
     # Define nodes
     robot_state_publisher_node = Node(
@@ -84,6 +100,8 @@ def generate_launch_description():
     # Create LaunchDescription and add actions
     ld = LaunchDescription([
         declare_use_sim_time_cmd,
+        declare_params_file_cmd,
+        declare_map_yaml_cmd,
 
         # Launch Gazebo
         IncludeLaunchDescription(
@@ -96,6 +114,7 @@ def generate_launch_description():
             }.items()
         ),
 
+        # Core robot nodes
         robot_state_publisher_node,
         spawn_entity_node,
         controller_manager_node,
@@ -114,23 +133,24 @@ def generate_launch_description():
             ],
         ),
 
-        # Include RViz launch
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                os.path.join(pkg_dir, 'launch', 'rviz.launch.py')
-            ),
-            launch_arguments={
-                'use_sim_time': use_sim_time
-            }.items()
-        ),
-
-        # Start the operator node
+        # Operator node
         Node(
             package='slam',
             executable='operatorNode',
             name='operator_node',
             output='screen',
             parameters=[{'use_sim_time': use_sim_time}],
+        ),
+
+        # Launch Nav2
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                os.path.join(nav2_bringup_dir, 'launch', 'navigation_launch.py')
+            ),
+            launch_arguments={
+                'use_sim_time': use_sim_time,
+                'params_file': params_file
+            }.items()
         ),
     ])
     

@@ -43,7 +43,7 @@ class Controller(Node):
         # Publishers
         self.twist_pub_ = self.create_publisher(
             Twist, 
-            "/diff_drive_controller/cmd_vel_unstamped", 
+            "/omnidirectional_controller/cmd_vel_unstamped", 
             twist_qos
         )
         
