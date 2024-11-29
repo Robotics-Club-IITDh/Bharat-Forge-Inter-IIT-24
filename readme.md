@@ -7,7 +7,7 @@ This is an official repository for Bharat-Forge Problem statement for Inter IIT 
 - ROS2 Humble
 - Gazebo 11
 - ROS2_Control
-- Colcon (if you wish to make changes)
+- Colcon 
 
 # Setup and Usage
 ## If Using for the First time on device
