@@ -1,0 +1,3 @@
+[console_scripts]
+operator_node = slam.operatorNode:main
+
