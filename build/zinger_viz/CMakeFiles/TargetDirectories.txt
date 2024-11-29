@@ -1,9 +1,0 @@
-/home/cobaltboy/ROS2/omni/build/zinger_viz/CMakeFiles/uninstall.dir
-/home/cobaltboy/ROS2/omni/build/zinger_viz/CMakeFiles/zinger_viz_uninstall.dir
-/home/cobaltboy/ROS2/omni/build/zinger_viz/CMakeFiles/test.dir
-/home/cobaltboy/ROS2/omni/build/zinger_viz/CMakeFiles/edit_cache.dir
-/home/cobaltboy/ROS2/omni/build/zinger_viz/CMakeFiles/rebuild_cache.dir
-/home/cobaltboy/ROS2/omni/build/zinger_viz/CMakeFiles/list_install_components.dir
-/home/cobaltboy/ROS2/omni/build/zinger_viz/CMakeFiles/install.dir
-/home/cobaltboy/ROS2/omni/build/zinger_viz/CMakeFiles/install/local.dir
-/home/cobaltboy/ROS2/omni/build/zinger_viz/CMakeFiles/install/strip.dir

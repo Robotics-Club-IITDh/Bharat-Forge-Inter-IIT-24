@@ -1,9 +1,0 @@
-/home/cobaltboy/ROS2/omni/build/zinger_ignition/CMakeFiles/uninstall.dir
-/home/cobaltboy/ROS2/omni/build/zinger_ignition/CMakeFiles/zinger_ignition_uninstall.dir
-/home/cobaltboy/ROS2/omni/build/zinger_ignition/CMakeFiles/test.dir
-/home/cobaltboy/ROS2/omni/build/zinger_ignition/CMakeFiles/edit_cache.dir
-/home/cobaltboy/ROS2/omni/build/zinger_ignition/CMakeFiles/rebuild_cache.dir
-/home/cobaltboy/ROS2/omni/build/zinger_ignition/CMakeFiles/list_install_components.dir
-/home/cobaltboy/ROS2/omni/build/zinger_ignition/CMakeFiles/install.dir
-/home/cobaltboy/ROS2/omni/build/zinger_ignition/CMakeFiles/install/local.dir
-/home/cobaltboy/ROS2/omni/build/zinger_ignition/CMakeFiles/install/strip.dir

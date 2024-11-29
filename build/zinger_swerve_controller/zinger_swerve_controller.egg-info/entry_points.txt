@@ -1,3 +1,0 @@
-[console_scripts]
-swerve_controller = zinger_swerve_controller.swerve_controller:main
-
