@@ -1,0 +1,35 @@
+running egg_info
+creating ../../build/scan_throttler/scan_throttler.egg-info
+writing ../../build/scan_throttler/scan_throttler.egg-info/PKG-INFO
+writing dependency_links to ../../build/scan_throttler/scan_throttler.egg-info/dependency_links.txt
+writing entry points to ../../build/scan_throttler/scan_throttler.egg-info/entry_points.txt
+writing requirements to ../../build/scan_throttler/scan_throttler.egg-info/requires.txt
+writing top-level names to ../../build/scan_throttler/scan_throttler.egg-info/top_level.txt
+writing manifest file '../../build/scan_throttler/scan_throttler.egg-info/SOURCES.txt'
+reading manifest file '../../build/scan_throttler/scan_throttler.egg-info/SOURCES.txt'
+writing manifest file '../../build/scan_throttler/scan_throttler.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/shreyas/turtlebot3_ws/build/scan_throttler/build
+creating /home/shreyas/turtlebot3_ws/build/scan_throttler/build/lib
+creating /home/shreyas/turtlebot3_ws/build/scan_throttler/build/lib/scan_throttler
+copying scan_throttler/scan_throttler.py -> /home/shreyas/turtlebot3_ws/build/scan_throttler/build/lib/scan_throttler
+copying scan_throttler/__init__.py -> /home/shreyas/turtlebot3_ws/build/scan_throttler/build/lib/scan_throttler
+running install
+running install_lib
+creating /home/shreyas/turtlebot3_ws/install/scan_throttler/lib/python3.10/site-packages/scan_throttler
+copying /home/shreyas/turtlebot3_ws/build/scan_throttler/build/lib/scan_throttler/scan_throttler.py -> /home/shreyas/turtlebot3_ws/install/scan_throttler/lib/python3.10/site-packages/scan_throttler
+copying /home/shreyas/turtlebot3_ws/build/scan_throttler/build/lib/scan_throttler/__init__.py -> /home/shreyas/turtlebot3_ws/install/scan_throttler/lib/python3.10/site-packages/scan_throttler
+byte-compiling /home/shreyas/turtlebot3_ws/install/scan_throttler/lib/python3.10/site-packages/scan_throttler/scan_throttler.py to scan_throttler.cpython-310.pyc
+byte-compiling /home/shreyas/turtlebot3_ws/install/scan_throttler/lib/python3.10/site-packages/scan_throttler/__init__.py to __init__.cpython-310.pyc
+running install_data
+creating /home/shreyas/turtlebot3_ws/install/scan_throttler/share/ament_index
+creating /home/shreyas/turtlebot3_ws/install/scan_throttler/share/ament_index/resource_index
+creating /home/shreyas/turtlebot3_ws/install/scan_throttler/share/ament_index/resource_index/packages
+copying resource/scan_throttler -> /home/shreyas/turtlebot3_ws/install/scan_throttler/share/ament_index/resource_index/packages
+copying package.xml -> /home/shreyas/turtlebot3_ws/install/scan_throttler/share/scan_throttler
+running install_egg_info
+Copying ../../build/scan_throttler/scan_throttler.egg-info to /home/shreyas/turtlebot3_ws/install/scan_throttler/lib/python3.10/site-packages/scan_throttler-0.0.0-py3.10.egg-info
+running install_scripts
+Installing throttle_scan script to /home/shreyas/turtlebot3_ws/install/scan_throttler/lib/scan_throttler
+writing list of installed files to '/home/shreyas/turtlebot3_ws/build/scan_throttler/install.log'

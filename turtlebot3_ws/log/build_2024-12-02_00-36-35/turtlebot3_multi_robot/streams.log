@@ -1,0 +1,71 @@
+[0.039s] Invoking command in '/home/shreyas/turtlebot3_ws/build/turtlebot3_multi_robot': CMAKE_PREFIX_PATH=/home/shreyas/turtlebot3_ws/install/turtlebot3_navigation2:/home/shreyas/turtlebot3_ws/install/turtlebot3:/home/shreyas/turtlebot3_ws/install/turtlebot3_simulations:/home/shreyas/turtlebot3_ws/install/turtlebot3_bringup:/home/shreyas/turtlebot3_ws/install/turtlebot3_node:/home/shreyas/turtlebot3_ws/install/turtlebot3_gazebo:/home/shreyas/turtlebot3_ws/install/turtlebot3_fake_node:/home/shreyas/turtlebot3_ws/install/turtlebot3_description:/home/shreyas/turtlebot3_ws/install/turtlebot3_cartographer:/home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam:/home/shreyas/turtlebot3_ws/install/turtlebot3_teleop:/home/shreyas/turtlebot3_ws/install/turtlebot3_example:/opt/ros/humble /usr/bin/cmake /home/shreyas/turtlebot3_ws/src/turtlebot3_multi_robot -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot
+[0.093s] -- The C compiler identification is GNU 11.4.0
+[0.145s] -- The CXX compiler identification is GNU 11.4.0
+[0.150s] -- Detecting C compiler ABI info
+[0.212s] -- Detecting C compiler ABI info - done
+[0.217s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.217s] -- Detecting C compile features
+[0.217s] -- Detecting C compile features - done
+[0.219s] -- Detecting CXX compiler ABI info
+[0.285s] -- Detecting CXX compiler ABI info - done
+[0.292s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.293s] -- Detecting CXX compile features
+[0.293s] -- Detecting CXX compile features - done
+[0.296s] -- Found ament_cmake: 1.3.10 (/opt/ros/humble/share/ament_cmake/cmake)
+[0.416s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.459s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[0.526s] -- Configuring done
+[0.528s] -- Generating done
+[0.528s] -- Build files have been written to: /home/shreyas/turtlebot3_ws/build/turtlebot3_multi_robot
+[0.531s] Invoked command in '/home/shreyas/turtlebot3_ws/build/turtlebot3_multi_robot' returned '0': CMAKE_PREFIX_PATH=/home/shreyas/turtlebot3_ws/install/turtlebot3_navigation2:/home/shreyas/turtlebot3_ws/install/turtlebot3:/home/shreyas/turtlebot3_ws/install/turtlebot3_simulations:/home/shreyas/turtlebot3_ws/install/turtlebot3_bringup:/home/shreyas/turtlebot3_ws/install/turtlebot3_node:/home/shreyas/turtlebot3_ws/install/turtlebot3_gazebo:/home/shreyas/turtlebot3_ws/install/turtlebot3_fake_node:/home/shreyas/turtlebot3_ws/install/turtlebot3_description:/home/shreyas/turtlebot3_ws/install/turtlebot3_cartographer:/home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam:/home/shreyas/turtlebot3_ws/install/turtlebot3_teleop:/home/shreyas/turtlebot3_ws/install/turtlebot3_example:/opt/ros/humble /usr/bin/cmake /home/shreyas/turtlebot3_ws/src/turtlebot3_multi_robot -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot
+[0.532s] Invoking command in '/home/shreyas/turtlebot3_ws/build/turtlebot3_multi_robot': CMAKE_PREFIX_PATH=/home/shreyas/turtlebot3_ws/install/turtlebot3_navigation2:/home/shreyas/turtlebot3_ws/install/turtlebot3:/home/shreyas/turtlebot3_ws/install/turtlebot3_simulations:/home/shreyas/turtlebot3_ws/install/turtlebot3_bringup:/home/shreyas/turtlebot3_ws/install/turtlebot3_node:/home/shreyas/turtlebot3_ws/install/turtlebot3_gazebo:/home/shreyas/turtlebot3_ws/install/turtlebot3_fake_node:/home/shreyas/turtlebot3_ws/install/turtlebot3_description:/home/shreyas/turtlebot3_ws/install/turtlebot3_cartographer:/home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam:/home/shreyas/turtlebot3_ws/install/turtlebot3_teleop:/home/shreyas/turtlebot3_ws/install/turtlebot3_example:/opt/ros/humble /usr/bin/cmake --build /home/shreyas/turtlebot3_ws/build/turtlebot3_multi_robot -- -j18 -l18
+[0.558s] Invoked command in '/home/shreyas/turtlebot3_ws/build/turtlebot3_multi_robot' returned '0': CMAKE_PREFIX_PATH=/home/shreyas/turtlebot3_ws/install/turtlebot3_navigation2:/home/shreyas/turtlebot3_ws/install/turtlebot3:/home/shreyas/turtlebot3_ws/install/turtlebot3_simulations:/home/shreyas/turtlebot3_ws/install/turtlebot3_bringup:/home/shreyas/turtlebot3_ws/install/turtlebot3_node:/home/shreyas/turtlebot3_ws/install/turtlebot3_gazebo:/home/shreyas/turtlebot3_ws/install/turtlebot3_fake_node:/home/shreyas/turtlebot3_ws/install/turtlebot3_description:/home/shreyas/turtlebot3_ws/install/turtlebot3_cartographer:/home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam:/home/shreyas/turtlebot3_ws/install/turtlebot3_teleop:/home/shreyas/turtlebot3_ws/install/turtlebot3_example:/opt/ros/humble /usr/bin/cmake --build /home/shreyas/turtlebot3_ws/build/turtlebot3_multi_robot -- -j18 -l18
+[0.559s] Invoking command in '/home/shreyas/turtlebot3_ws/build/turtlebot3_multi_robot': CMAKE_PREFIX_PATH=/home/shreyas/turtlebot3_ws/install/turtlebot3_navigation2:/home/shreyas/turtlebot3_ws/install/turtlebot3:/home/shreyas/turtlebot3_ws/install/turtlebot3_simulations:/home/shreyas/turtlebot3_ws/install/turtlebot3_bringup:/home/shreyas/turtlebot3_ws/install/turtlebot3_node:/home/shreyas/turtlebot3_ws/install/turtlebot3_gazebo:/home/shreyas/turtlebot3_ws/install/turtlebot3_fake_node:/home/shreyas/turtlebot3_ws/install/turtlebot3_description:/home/shreyas/turtlebot3_ws/install/turtlebot3_cartographer:/home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam:/home/shreyas/turtlebot3_ws/install/turtlebot3_teleop:/home/shreyas/turtlebot3_ws/install/turtlebot3_example:/opt/ros/humble /usr/bin/cmake --install /home/shreyas/turtlebot3_ws/build/turtlebot3_multi_robot
+[0.568s] -- Install configuration: ""
+[0.568s] -- Execute custom install script
+[0.568s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//launch/gazebo_multi_nav2_world.launch.py
+[0.575s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//launch/gazebo_multi_world.launch.py
+[0.581s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//launch/nav2_bringup/bringup_launch.py
+[0.587s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//launch/nav2_bringup/localization_launch.py
+[0.593s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//launch/nav2_bringup/navigation_launch.py
+[0.598s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//launch/nav2_bringup/rviz_launch.py
+[0.604s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//launch/nav2_bringup/slam_launch.py
+[0.610s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//models/turtlebot3_burger/meshes/burger_base.dae
+[0.615s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//models/turtlebot3_burger/meshes/lds.dae
+[0.620s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//models/turtlebot3_burger/meshes/tire.dae
+[0.624s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//models/turtlebot3_burger/model-1_4.sdf
+[0.629s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//models/turtlebot3_burger/model.config
+[0.636s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//models/turtlebot3_burger/model.sdf
+[0.640s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//models/turtlebot3_waffle/meshes/lds.dae
+[0.645s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//models/turtlebot3_waffle/meshes/r200.dae
+[0.654s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//models/turtlebot3_waffle/meshes/tire.dae
+[0.660s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//models/turtlebot3_waffle/meshes/waffle_base.dae
+[0.667s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//models/turtlebot3_waffle/model-1_4.sdf
+[0.672s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//models/turtlebot3_waffle/model.config
+[0.678s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//models/turtlebot3_waffle/model.sdf
+[0.684s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//models/turtlebot3_waffle/model_nocamera.sdf
+[0.688s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//rviz/multi_nav2_default_view.rviz
+[0.695s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//rviz/nav2_default_view.rviz
+[0.700s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//urdf/common_properties.urdf
+[0.705s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//urdf/turtlebot3_burger.urdf
+[0.711s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//urdf/turtlebot3_waffle.urdf
+[0.717s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//worlds/multi_empty_world.world
+[0.721s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//worlds/multi_robot_world.world
+[0.726s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot//params/nav2_params.yaml
+[0.731s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot/environment/multi_robot.dsv
+[0.737s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/ament_index/resource_index/package_run_dependencies/turtlebot3_multi_robot
+[0.742s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/ament_index/resource_index/parent_prefix_path/turtlebot3_multi_robot
+[0.748s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot/environment/ament_prefix_path.sh
+[0.753s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot/environment/ament_prefix_path.dsv
+[0.758s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot/environment/path.sh
+[0.762s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot/environment/path.dsv
+[0.767s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot/local_setup.bash
+[0.773s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot/local_setup.sh
+[0.781s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot/local_setup.zsh
+[0.786s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot/local_setup.dsv
+[0.793s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot/package.dsv
+[0.799s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/ament_index/resource_index/packages/turtlebot3_multi_robot
+[0.805s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot/cmake/turtlebot3_multi_robotConfig.cmake
+[0.811s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot/cmake/turtlebot3_multi_robotConfig-version.cmake
+[0.817s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/turtlebot3_multi_robot/share/turtlebot3_multi_robot/package.xml
+[0.824s] Invoked command in '/home/shreyas/turtlebot3_ws/build/turtlebot3_multi_robot' returned '0': CMAKE_PREFIX_PATH=/home/shreyas/turtlebot3_ws/install/turtlebot3_navigation2:/home/shreyas/turtlebot3_ws/install/turtlebot3:/home/shreyas/turtlebot3_ws/install/turtlebot3_simulations:/home/shreyas/turtlebot3_ws/install/turtlebot3_bringup:/home/shreyas/turtlebot3_ws/install/turtlebot3_node:/home/shreyas/turtlebot3_ws/install/turtlebot3_gazebo:/home/shreyas/turtlebot3_ws/install/turtlebot3_fake_node:/home/shreyas/turtlebot3_ws/install/turtlebot3_description:/home/shreyas/turtlebot3_ws/install/turtlebot3_cartographer:/home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam:/home/shreyas/turtlebot3_ws/install/turtlebot3_teleop:/home/shreyas/turtlebot3_ws/install/turtlebot3_example:/opt/ros/humble /usr/bin/cmake --install /home/shreyas/turtlebot3_ws/build/turtlebot3_multi_robot

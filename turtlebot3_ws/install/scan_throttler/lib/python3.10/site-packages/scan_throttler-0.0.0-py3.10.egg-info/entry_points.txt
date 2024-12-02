@@ -1,0 +1,3 @@
+[console_scripts]
+throttle_scan = scan_throttler.scan_throttler:main
+

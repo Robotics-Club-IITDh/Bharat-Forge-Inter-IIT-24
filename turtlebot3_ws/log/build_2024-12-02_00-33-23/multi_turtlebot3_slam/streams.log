@@ -1,0 +1,21 @@
+[0.343s] Invoking command in '/home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/shreyas/turtlebot3_ws/install/turtlebot3_teleop:/home/shreyas/turtlebot3_ws/install/turtlebot3_example:/opt/ros/humble /usr/bin/cmake --build /home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam -- -j18 -l18
+[0.387s] Invoked command in '/home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/shreyas/turtlebot3_ws/install/turtlebot3_teleop:/home/shreyas/turtlebot3_ws/install/turtlebot3_example:/opt/ros/humble /usr/bin/cmake --build /home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam -- -j18 -l18
+[0.389s] Invoking command in '/home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/shreyas/turtlebot3_ws/install/turtlebot3_teleop:/home/shreyas/turtlebot3_ws/install/turtlebot3_example:/opt/ros/humble /usr/bin/cmake --install /home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam
+[0.420s] -- Install configuration: ""
+[0.420s] -- Execute custom install script
+[0.420s] -- Up-to-date symlink: /home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam/share/ament_index/resource_index/package_run_dependencies/multi_turtlebot3_slam
+[0.420s] -- Up-to-date symlink: /home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam/share/ament_index/resource_index/parent_prefix_path/multi_turtlebot3_slam
+[0.420s] -- Up-to-date symlink: /home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam/share/multi_turtlebot3_slam/environment/ament_prefix_path.sh
+[0.420s] -- Up-to-date symlink: /home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam/share/multi_turtlebot3_slam/environment/ament_prefix_path.dsv
+[0.420s] -- Up-to-date symlink: /home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam/share/multi_turtlebot3_slam/environment/path.sh
+[0.420s] -- Up-to-date symlink: /home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam/share/multi_turtlebot3_slam/environment/path.dsv
+[0.420s] -- Up-to-date symlink: /home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam/share/multi_turtlebot3_slam/local_setup.bash
+[0.420s] -- Up-to-date symlink: /home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam/share/multi_turtlebot3_slam/local_setup.sh
+[0.420s] -- Up-to-date symlink: /home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam/share/multi_turtlebot3_slam/local_setup.zsh
+[0.420s] -- Up-to-date symlink: /home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam/share/multi_turtlebot3_slam/local_setup.dsv
+[0.420s] -- Symlinking: /home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam/share/multi_turtlebot3_slam/package.dsv
+[0.420s] -- Up-to-date symlink: /home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam/share/ament_index/resource_index/packages/multi_turtlebot3_slam
+[0.420s] -- Up-to-date symlink: /home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam/share/multi_turtlebot3_slam/cmake/multi_turtlebot3_slamConfig.cmake
+[0.420s] -- Up-to-date symlink: /home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam/share/multi_turtlebot3_slam/cmake/multi_turtlebot3_slamConfig-version.cmake
+[0.420s] -- Up-to-date symlink: /home/shreyas/turtlebot3_ws/install/multi_turtlebot3_slam/share/multi_turtlebot3_slam/package.xml
+[0.450s] Invoked command in '/home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/shreyas/turtlebot3_ws/install/turtlebot3_teleop:/home/shreyas/turtlebot3_ws/install/turtlebot3_example:/opt/ros/humble /usr/bin/cmake --install /home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam

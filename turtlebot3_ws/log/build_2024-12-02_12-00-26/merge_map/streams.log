@@ -1,0 +1,17 @@
+[0.753s] Invoking command in '/home/shreyas/turtlebot3_ws/build/merge_map': PYTHONPATH=/home/shreyas/turtlebot3_ws/build/merge_map/prefix_override:/home/shreyas/.local/lib/python3.10/site-packages/colcon_core/task/python/colcon_distutils_commands:/home/shreyas/turtlebot3_ws/install/merge_map/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/shreyas/turtlebot3_ws/build/merge_map/build --no-deps symlink_data
+[0.932s] running develop
+[1.029s] running egg_info
+[1.029s] writing merge_map.egg-info/PKG-INFO
+[1.029s] writing dependency_links to merge_map.egg-info/dependency_links.txt
+[1.029s] writing entry points to merge_map.egg-info/entry_points.txt
+[1.029s] writing requirements to merge_map.egg-info/requires.txt
+[1.029s] writing top-level names to merge_map.egg-info/top_level.txt
+[1.030s] reading manifest file 'merge_map.egg-info/SOURCES.txt'
+[1.031s] writing manifest file 'merge_map.egg-info/SOURCES.txt'
+[1.032s] running build_ext
+[1.032s] Creating /home/shreyas/turtlebot3_ws/install/merge_map/lib/python3.10/site-packages/merge-map.egg-link (link to .)
+[1.032s] Installing merge_map script to /home/shreyas/turtlebot3_ws/install/merge_map/lib/merge_map
+[1.032s] 
+[1.033s] Installed /home/shreyas/turtlebot3_ws/build/merge_map
+[1.033s] running symlink_data
+[1.051s] Invoked command in '/home/shreyas/turtlebot3_ws/build/merge_map' returned '0': PYTHONPATH=/home/shreyas/turtlebot3_ws/build/merge_map/prefix_override:/home/shreyas/.local/lib/python3.10/site-packages/colcon_core/task/python/colcon_distutils_commands:/home/shreyas/turtlebot3_ws/install/merge_map/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/shreyas/turtlebot3_ws/build/merge_map/build --no-deps symlink_data
