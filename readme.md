@@ -53,7 +53,7 @@ ros2 launch slam launch.py namespace:=robot_1 x_pos:=0.0 y_pos:=0.0
 
 
 # How the code works (TO BE UPDATED WITH EACH PUSH)
-
+# // TODO
 The core of the bot uses ROS2 Humble as base and // Talk about model
 
 The build is divided into two parts, first is the `robot_gazebo` package which holds data and launch files for launching gazebo and `slam` which holds model design, and controller scripts for the bots, the bots are identical and we can spawn any number of bots in the world, each with their custom `namespace` defined in the launching command with their position in `(x, y ,z)` format
