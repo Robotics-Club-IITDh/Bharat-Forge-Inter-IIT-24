@@ -3,8 +3,8 @@
 <package format="3">
   <name>robot_gazebo</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="pathanaffan62@gmail.com">cobaltboy</maintainer>
+  <description>A Package for launching a Factory World in Gazebo 11</description>
+  <maintainer email="johndoe@sample.com">TODO</maintainer>
   <license>TODO: License declaration</license>
 
   <depend>rclpy</depend>
