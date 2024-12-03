@@ -4,9 +4,9 @@ This is an official repository for Bharat-Forge Problem statement for Inter IIT 
 
 # Dependancies
 
-- ROS2 Humble
-- Gazebo 11
-- ROS2_Control
+- Ubuntu 22.04
+- ROS2 Humble ----- ([ROS2 Humble Official Documentation](https://docs.ros.org/en/humble/Installation.html))
+- Gazebo 11  ----- ([Gazebo 11 Official Documentation](https://classic.gazebosim.org/tutorials?tut=install_ubuntu))
 - Colcon 
 
 # Setup and Usage
@@ -51,9 +51,18 @@ ros2 launch slam launch.py namespace:=<Robot_name> x_pos:=<X_Coordinate> y_pos:=
 ros2 launch slam launch.py namespace:=robot_1 x_pos:=0.0 y_pos:=0.0
 ```
 
+### Giving Targets to the model
 
-# How the code works (TO BE UPDATED WITH EACH PUSH)
-# // TODO
-The core of the bot uses ROS2 Humble as base and // Talk about model
+Targets to a model are given by a node names set_target, open up another terminal and run this command to give the robot a target in form of (x,y,z)
+```
+ros2 run slam set_target
+```
 
-The build is divided into two parts, first is the `robot_gazebo` package which holds data and launch files for launching gazebo and `slam` which holds model design, and controller scripts for the bots, the bots are identical and we can spawn any number of bots in the world, each with their custom `namespace` defined in the launching command with their position in `(x, y ,z)` format
+# Monitoring output
+
+launch RViz2 to monitor map creation
+```
+rviz2
+```
+
+Once RViz2 opens, click the add button and add a map data, select to topic as <<TOPIC_GOES_HERE!!!>>
