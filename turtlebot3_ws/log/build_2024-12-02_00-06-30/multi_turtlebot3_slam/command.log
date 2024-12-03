@@ -1,4 +1,0 @@
-Invoking command in '/home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam -- -j18 -l18
-Invoked command in '/home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --build /home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam -- -j18 -l18
-Invoking command in '/home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam
-Invoked command in '/home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/opt/ros/humble /usr/bin/cmake --install /home/shreyas/turtlebot3_ws/build/multi_turtlebot3_slam
