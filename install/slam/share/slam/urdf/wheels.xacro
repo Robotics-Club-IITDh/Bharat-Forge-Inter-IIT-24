@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:macro name="wheels" params="namespace">
+        <!-- Left Wheel -->
+        <link name="${namespace}/left_wheel">
+            <visual>
+                <geometry>
+                    <cylinder length="0.02" radius="0.05"/>
+                </geometry>
+                <material name="black"/>
+            </visual>
+            <collision>
+                <geometry>
+                    <cylinder length="0.02" radius="0.05"/>
+                </geometry>
+            </collision>
+            <inertial>
+                <mass value="0.5"/>
+                <origin xyz="0 0 0"/>
+                <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
+            </inertial>
+        </link>
+
+        <joint name="${namespace}/left_wheel_joint" type="continuous">
+            <parent link="${namespace}/base_link"/>
+            <child link="${namespace}/left_wheel"/>
+            <origin xyz="0.10 0.15 -0.05" rpy="-1.5707 0 0"/>
+            <axis xyz="0 0 1"/>
+        </joint>
+
+        <!-- Right Wheel -->
+        <link name="${namespace}/right_wheel">
+            <visual>
+                <geometry>
+                    <cylinder length="0.02" radius="0.05"/>
+                </geometry>
+                <material name="black"/>
+            </visual>
+            <collision>
+                <geometry>
+                    <cylinder length="0.02" radius="0.05"/>
+                </geometry>
+            </collision>
+            <inertial>
+                <mass value="0.5"/>
+                <origin xyz="0 0 0"/>
+                <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
+            </inertial>
+        </link>
+
+        <joint name="${namespace}/right_wheel_joint" type="continuous">
+            <parent link="${namespace}/base_link"/>
+            <child link="${namespace}/right_wheel"/>
+            <origin xyz="0.10 -0.15 -0.05" rpy="-1.5707 0 0"/>
+            <axis xyz="0 0 1"/>
+        </joint>
+
+        <!-- Caster Wheel -->
+        <link name="${namespace}/caster_wheel">
+            <visual>
+                <geometry>
+                    <sphere radius="0.05"/>
+                </geometry>
+                <material name="gray"/>
+            </visual>
+            <collision>
+                <geometry>
+                    <sphere radius="0.05"/>
+                </geometry>
+            </collision>
+            <inertial>
+                <mass value="0.1"/>
+                <origin xyz="0 0 0"/>
+                <inertia ixx="0.0001" ixy="0.0" ixz="0.0" iyy="0.0001" iyz="0.0" izz="0.0001"/>
+            </inertial>
+        </link>
+
+        <joint name="${namespace}/caster_wheel_joint" type="fixed">
+            <parent link="${namespace}/base_link"/>
+            <child link="${namespace}/caster_wheel"/>
+            <origin xyz="-0.15 0.0 -0.05" rpy="0 0 0"/>
+        </joint>
+    </xacro:macro>
+
+</robot>

@@ -1,0 +1,83 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <xacro:macro name="gazebo_plugins" params="namespace">
+    <!-- ros2_control setup -->
+    <ros2_control name="${namespace}_system" type="system">
+      <hardware>
+        <plugin>fake_components/GenericSystem</plugin>
+      </hardware>
+      
+      <joint name="${namespace}/left_wheel_joint">
+        <command_interface name="velocity">
+          <param name="min">-10</param>
+          <param name="max">10</param>
+        </command_interface>
+        <state_interface name="velocity"/>
+        <state_interface name="position"/>
+      </joint>
+
+      <joint name="${namespace}/right_wheel_joint">
+        <command_interface name="velocity">
+          <param name="min">-10</param>
+          <param name="max">10</param>
+        </command_interface>
+        <state_interface name="velocity"/>
+        <state_interface name="position"/>
+      </joint>
+    </ros2_control>
+
+    <gazebo>
+      <plugin name='${namespace}_diff_drive' filename='libgazebo_ros_diff_drive.so'>
+        <ros>
+          <namespace>/${namespace}</namespace>
+        </ros>
+
+        <!-- Wheel Information -->
+        <left_joint>${namespace}/left_wheel_joint</left_joint>
+        <right_joint>${namespace}/right_wheel_joint</right_joint>
+        <wheel_separation>0.3</wheel_separation>
+        <wheel_diameter>0.1</wheel_diameter>
+
+        <!-- Limits -->
+        <max_wheel_torque>20</max_wheel_torque>
+        <max_wheel_acceleration>1.0</max_wheel_acceleration>
+
+        <!-- Output -->
+        <odometry_frame>${namespace}/odom</odometry_frame>
+        <robot_base_frame>${namespace}/base_link</robot_base_frame>
+
+        <publish_odom>true</publish_odom>
+        <publish_odom_tf>true</publish_odom_tf>
+        <publish_wheel_tf>true</publish_wheel_tf>
+
+        <odometry_topic>odom</odometry_topic>
+        <odometry_source>world</odometry_source>
+
+        <update_rate>50</update_rate>
+      </plugin>
+    </gazebo>
+
+    <!-- Material properties -->
+    <gazebo reference="${namespace}/base_link">
+      <material>Gazebo/Blue</material>
+    </gazebo>
+
+    <gazebo reference="${namespace}/left_wheel">
+      <material>Gazebo/Black</material>
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+    </gazebo>
+
+    <gazebo reference="${namespace}/right_wheel">
+      <material>Gazebo/Black</material>
+      <mu1>1.0</mu1>
+      <mu2>1.0</mu2>
+    </gazebo>
+
+    <gazebo reference="${namespace}/caster_wheel">
+      <material>Gazebo/Gray</material>
+      <mu1>0.1</mu1>
+      <mu2>0.1</mu2>
+    </gazebo>
+  </xacro:macro>
+</robot>
