@@ -7,7 +7,9 @@ This is an official repository for Bharat-Forge Problem statement for Inter IIT 
 - Ubuntu 22.04
 - ROS2 Humble ----- ([ROS2 Humble Official Documentation](https://docs.ros.org/en/humble/Installation.html))
 - Gazebo 11  ----- ([Gazebo 11 Official Documentation](https://classic.gazebosim.org/tutorials?tut=install_ubuntu))
-- Colcon 
+- Colcon
+- Numpy
+- PyTorch
 
 # Setup and Usage
 ## If Using for the First time on device
