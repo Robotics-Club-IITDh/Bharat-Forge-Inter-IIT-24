@@ -4,6 +4,7 @@ from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 import os
+from launch_ros.actions import Node
 
 def generate_launch_description():
 
@@ -17,7 +18,6 @@ def generate_launch_description():
     # Get the value of the 'world' argument
     world_file = LaunchConfiguration('world')
 
-
     # Gazebo directory
     gazebo_ros_dir = get_package_share_directory('gazebo_ros')
 
@@ -28,9 +28,20 @@ def generate_launch_description():
             ),
             launch_arguments={'world': world_file}.items()
         )
+    
+    # Map Merger
+    merger_node = Node(
+        package='robot_gazebo',
+        executable='map_merger',
+        parameters=[
+            {'use_sim_time': True}
+        ],
+        output='screen',
+    )
 
     # Return the launch description
     return LaunchDescription([
         world_arg,
-        gazebo_process
+        gazebo_process,
+        merger_node
     ])
