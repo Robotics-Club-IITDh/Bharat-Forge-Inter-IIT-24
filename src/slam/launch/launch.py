@@ -164,7 +164,7 @@ def generate_launch_description():
         namespace=namespace,  # Explicitly set the namespace
         output='screen',
         parameters=[
-            os.path.join(pkg_dir, 'config', 'mapper_params_online_async.yaml'),
+            slam_config,
             {
                 'use_sim_time': use_sim_time,
                 'scan_topic': PythonExpression(['"/', namespace, '/scan"']),
@@ -173,7 +173,7 @@ def generate_launch_description():
             }
         ],
         remappings=[
-            ('map', 'map')
+            ('/map', ['/', namespace, '/map'])
         ]
         )
     
