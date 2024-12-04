@@ -4,7 +4,7 @@
   <name>slam</name>
   <version>0.0.0</version>
   <description>A Package for simulation for autonomous mapping and navigation of any unknown terrain</description>
-  <maintainer email="pathanaffan62@gmail.com">Cobaltboy</maintainer>
+  <maintainer email="johndoe@sample.com">John Doe</maintainer>
   <license>TODO: License declaration</license>
 
   <depend>rclpy</depend>
