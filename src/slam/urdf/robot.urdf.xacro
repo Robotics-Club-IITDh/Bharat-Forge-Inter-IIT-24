@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="diff_drive_robot">
+    <!-- First, we properly declare our arguments -->
+    <xacro:arg name="namespace" default="robot1"/>
+    <xacro:arg name="x" default="0"/>
+    <xacro:arg name="y" default="0"/>
+    <xacro:arg name="z" default="0"/>
+
+    <!-- We need to create properties from our arguments to use them in includes -->
+    <xacro:property name="robot_namespace" value="$(arg namespace)"/>
+    <xacro:property name="robot_x" value="$(arg x)"/>
+    <xacro:property name="robot_y" value="$(arg y)"/>
+    <xacro:property name="robot_z" value="$(arg z)"/>
+
+    <!-- Include Modules -->
+    <xacro:include filename="base.xacro"/>
+    <xacro:include filename="wheels.xacro"/>
+    <xacro:include filename="lidar.xacro"/>
+    <xacro:include filename="gazebo_plugins.xacro"/>
+
+    <!-- Now we use our properties when calling the macros -->
+    <xacro:base namespace="${robot_namespace}" x="${robot_x}" y="${robot_y}" z="${robot_z}"/>
+    <xacro:wheels namespace="${robot_namespace}"/>
+    <xacro:lidar namespace="${robot_namespace}"/>
+    <xacro:gazebo_plugins namespace="${robot_namespace}"/>
+</robot>
