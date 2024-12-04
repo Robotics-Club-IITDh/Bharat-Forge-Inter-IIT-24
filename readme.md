@@ -44,7 +44,8 @@ ros2 launch robot_gazebo world_launch.py
 ```
 or launch the factory world
 ```
-ros2 launch robot_gazebo world_launch.py world:=<Path_to_world_file> 
+ros2 launch robot_gazebo world_launch.py world:=<Path_to_world_file> robot_names:='["robot_1", "robot_2"]'
+// Add the same robot names as you wish to spawn, otherwise resulting in unintended behaviour
 ```
 ### Finally launch each robot with its own namespace, and position
 ```
@@ -67,4 +68,10 @@ launch RViz2 to monitor map creation
 rviz2
 ```
 
-Once RViz2 opens, click the add button and add a map data, select to topic as <<TOPIC_GOES_HERE!!!>>
+Once RViz2 opens, click the add button and add a map data, select to topic as /merged_map
+
+# Scaling
+The system is designed with scaling in mind, to change the number of robots for testing the system, do the following
+
+- **Tune the Map Merger for the number of bots**
+  During launching the map merger node,
