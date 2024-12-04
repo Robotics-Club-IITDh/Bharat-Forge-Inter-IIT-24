@@ -23,7 +23,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'map_merger = robot_gazebo.map_merger:main'
+            'map_merger = robot_gazebo.map_merger:main',
+            'master_controller = robot_gazebo.master_controller:main'
         ],
     },
 )
