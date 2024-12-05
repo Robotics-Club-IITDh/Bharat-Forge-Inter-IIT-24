@@ -29,7 +29,7 @@ class PytorchModelController(Node):
         # Subscribe to the /merged_map topic
         self.map_subscription = self.create_subscription(
             OccupancyGrid,
-            "/merged_map",
+            "/merge_map",
             self.map_callback,
             qos_profile,
         )
@@ -78,7 +78,7 @@ class PytorchModelController(Node):
     # ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ############ ROS FUNCTIONS ###################
     def map_callback(self, msg: OccupancyGrid):
-        """Callback to handle the incoming /merged_map data."""
+        """Callback to handle the incoming /merge_map data."""
         self.map_data = list(msg.data)  # Convert map data to a flat list
         self.map_resolution = msg.info.resolution
         self.map_origin_x = msg.info.origin.position.x
