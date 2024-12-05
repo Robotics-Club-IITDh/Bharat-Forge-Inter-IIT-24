@@ -54,7 +54,7 @@ ros2 launch slam launch.py namespace:=<Robot_name> x_pos:=<X_Coordinate> y_pos:=
 ros2 launch slam launch.py namespace:=robot_1 x_pos:=0.0 y_pos:=0.0
 ```
 
-**Make sure to launch all robots from same coordinates for accurate map merging**
+**######### Make sure to launch all robots from same coordinates for accurate map merging ########**
 
 ### Giving Targets to the model
 
