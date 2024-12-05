@@ -28,11 +28,17 @@ def generate_launch_description():
     merger_node = Node(
         package='robot_gazebo',
         executable='map_merger',
-        parameters=[
-            {'use_sim_time': True},
-            {'robot_names': robot_names}
-        ],
+        name='map_merger',
         output='screen',
+        parameters=[{
+            'robot_namespaces': robot_names,
+            'use_sim_time': True,
+            'publish_rate': 10.0,
+        }],
+        remappings=[
+            ('/tf', 'tf'),
+            ('/tf_static', 'tf_static'),
+        ]
     )
 
     master_controller_launch = Node(
