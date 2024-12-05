@@ -29,7 +29,8 @@ setup(
         'console_scripts': [
             'operator_node = slam.operatorNode:main',
             'nearest_bot = slam.nearest_bot_node:main',
-            'camera_node = slam.camera_node:main'
+            'camera_node = slam.camera_node:main',
+            'astar_controller = slam.astar_controller:main'
         ],
     },
 )
