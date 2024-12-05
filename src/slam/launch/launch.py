@@ -233,7 +233,7 @@ def generate_launch_description():
         controller_to_spawners,
         slam_toolbox_node,
         operator_node,
-        astart_controller_node,
+        astar_controller_node,
 
     ])
     
