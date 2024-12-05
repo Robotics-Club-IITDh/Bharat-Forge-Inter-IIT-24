@@ -11,7 +11,7 @@ slam_toolbox:
     minimum_time_interval: 0.2
     transform_timeout: 0.2
     tf_buffer_duration: 30.0
-    stack_size_to_use: 40000000
+    stack_size_to_use: 80000000
     enable_interactive_mode: true
     
     # Frames Configuration - Updated to use namespaced frames
