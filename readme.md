@@ -77,5 +77,5 @@ Once RViz2 opens, click the add button and add a map data, select to topic as /m
 The system is designed with scaling in mind, to change the number of robots for testing the system, do the following
 
 - **Tune the Map Merger and Master_Controllers for the number of bots**
-  Go into `world_launch.py`, go to `line 28` and update the names of the bots you wish to use while spawning them
+  Go into `src/robot_gazebo/launch/world_launch.py`, go to `line 28` and update the names of the bots you wish to use while spawning them
 
