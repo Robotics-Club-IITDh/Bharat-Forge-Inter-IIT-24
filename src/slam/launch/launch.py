@@ -157,15 +157,26 @@ def generate_launch_description():
     )
 
     camera_processor = Node(
-    package='slam',
-    executable='camera_node',
-    name='camera_node',
-    namespace=namespace,
-    parameters=[{
-        'namespace': namespace
-    }],
-    output='screen'
-)
+        package='slam',
+        executable='camera_node',
+        name='camera_node',
+        namespace=namespace,
+        parameters=[{
+            'namespace': namespace
+        }],
+        output='screen'
+    )
+
+    operator_node = Node(
+        package='slam',
+        executable='operator_node',
+        name='operator_node',
+        namespace=namespace,
+        parameters=[{
+            'namespace': namespace
+        }],
+        output='screen'
+    )
     
     # Configure the SLAM node with proper namespacing
     slam_toolbox_node = Node(
@@ -210,6 +221,7 @@ def generate_launch_description():
         spawn_to_controller,
         controller_to_spawners,
         slam_toolbox_node,
+        operator_node,
         
 
     ])
