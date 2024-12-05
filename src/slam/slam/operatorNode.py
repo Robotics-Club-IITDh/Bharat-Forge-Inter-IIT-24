@@ -7,6 +7,14 @@ from geometry_msgs.msg import Twist
 from rclpy.qos import QoSProfile
 import math
 
+
+###################################
+
+
+# Model's class here 
+
+
+####################################
 class PytorchModelController(Node):
     def __init__(self):
         super().__init__("controller")
