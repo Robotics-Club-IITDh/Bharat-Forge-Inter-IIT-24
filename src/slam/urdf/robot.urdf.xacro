@@ -22,5 +22,6 @@
     <xacro:base namespace="${robot_namespace}" x="${robot_x}" y="${robot_y}" z="${robot_z}"/>
     <xacro:wheels namespace="${robot_namespace}"/>
     <xacro:lidar namespace="${robot_namespace}"/>
+    <xacro:camera namespace="${robot_namespace}"/>
     <xacro:gazebo_plugins namespace="${robot_namespace}"/>
 </robot>
