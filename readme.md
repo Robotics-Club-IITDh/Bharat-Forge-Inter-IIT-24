@@ -44,8 +44,7 @@ ros2 launch robot_gazebo world_launch.py
 ```
 or launch the factory world
 ```
-ros2 launch robot_gazebo world_launch.py world:=<Path_to_world_file> robot_names:='["robot_1", "robot_2"]'
-// Add the same robot names as you wish to spawn, otherwise resulting in unintended behaviour
+ros2 launch robot_gazebo world_launch.py world:=$(ros2 pkg prefix robot_gazebo)/share/robot_gazebo/world/factory.world
 ```
 ### Finally launch each robot with its own namespace, and position
 ```
