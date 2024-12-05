@@ -52,9 +52,22 @@ def generate_launch_description():
         remappings=[('/target', '/target')] 
     )
 
+    position_publisher_node = Node(
+        package='robot_gazebo',
+        executable='position_publisher',
+        name='position_publisher',
+        parameters=[{
+            'robot_names': robot_names,
+            'use_sim_time': True
+        }],
+        output='screen'
+    )
+
+
     return LaunchDescription([
         world_arg,
         gazebo_process,
         merger_node,
-        master_controller_launch
+        master_controller_launch,
+        position_publisher_node
     ])
