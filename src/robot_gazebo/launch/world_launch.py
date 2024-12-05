@@ -69,5 +69,5 @@ def generate_launch_description():
         gazebo_process,
         merger_node,
         master_controller_launch,
-        position_publisher_node
+        position_publisher_node,
     ])
