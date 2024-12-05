@@ -6,3 +6,5 @@
 4. noname.py: Main implementation of all actor.py, agent.py and ReplayBuffer application
 5. ppo_model : An alternate for actor.py
 6. ppo_model.pth : saved weights of ppo_model.py which will be ideally used for training on ROS2 setup
+7. environment.py : defining the dyanmic environment for the simulation
+8. main.py : graph of simulation
