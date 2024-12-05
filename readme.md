@@ -56,10 +56,12 @@ ros2 launch slam launch.py namespace:=robot_1 x_pos:=0.0 y_pos:=0.0
 
 ### Giving Targets to the model
 
-Targets to a model are given by a node names set_target, open up another terminal and run this command to give the robot a target in form of (x,y,z)
+Targets to a model are given by a node `Master_Controller`, we use `geometry_msgs/Point` to set Target to the system, the master controller will then calculate the nearest robot to the target and shall assign task to it, targets can be given by publishing a point message on `/target` topic, and you shall get the name of the assigned robot back on topic `/target_return`
 ```
-ros2 run slam set_target
+ros2 topic pub --once /target geometry_msgs/msg/Point "{x: 3.0, y: 0.0, z: 0.0}"
 ```
+
+This will set target to (3,0,0)
 
 # Monitoring output
 
@@ -73,5 +75,6 @@ Once RViz2 opens, click the add button and add a map data, select to topic as /m
 # Scaling
 The system is designed with scaling in mind, to change the number of robots for testing the system, do the following
 
-- **Tune the Map Merger for the number of bots**
-  During launching the map merger node,
+- **Tune the Map Merger and Master_Controllers for the number of bots**
+  Go into `world_launch.py`, go to `line 28` and update the names of the bots you wish to use while spawning them
+
