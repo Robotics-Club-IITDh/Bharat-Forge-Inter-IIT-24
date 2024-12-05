@@ -23,7 +23,17 @@ def generate_launch_description():
         launch_arguments={'world': world_file}.items()
     )
     
+    ############################ CHANGES HERE ####################################
+
     robot_names = ['robot_1', 'robot_2']    # CHANGE FOR ALL ROBOTS
+
+    # The Robot names must match the namespaces they are being launched
+    # in using the slam package
+
+    # Eg: If you wish to spawn four robots with name robot_1, robot_2, robot_3, robot_4 
+    # Then add all the robot names in this list, missing any name will lead to unintended behaviours 
+
+    ##############################################################################
 
     merger_node = Node(
         package='robot_gazebo',

@@ -8,7 +8,7 @@ from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy
 
 class RobotPositionPublisher(Node):
     def __init__(self):
-        super().__init__('robot_position_publisher')
+        super().__init__('position_publisher')
         
         qos_profile = QoSProfile(
             reliability=ReliabilityPolicy.RELIABLE,
