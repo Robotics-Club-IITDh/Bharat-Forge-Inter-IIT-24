@@ -155,6 +155,17 @@ def generate_launch_description():
             on_exit=[joint_broad_spawner, diff_drive_spawner],
         )
     )
+
+    camera_processor = Node(
+    package='slam',
+    executable='camera_node',
+    name='camera_node',
+    namespace=namespace,
+    parameters=[{
+        'namespace': namespace
+    }],
+    output='screen'
+)
     
     # Configure the SLAM node with proper namespacing
     slam_toolbox_node = Node(
@@ -195,9 +206,11 @@ def generate_launch_description():
         spawn_entity_node,
         
         # Controller sequence
+        camera_processor,
         spawn_to_controller,
         controller_to_spawners,
         slam_toolbox_node,
+        
 
     ])
     
