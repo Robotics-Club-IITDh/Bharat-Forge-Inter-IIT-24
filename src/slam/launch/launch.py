@@ -197,8 +197,19 @@ def generate_launch_description():
         remappings=[
             ('/map', ['/', namespace, '/map'])
         ]
+    )
+
+    astar_controller_node = Node(
+        package='slam',
+        executable='astar_controller',
+        name='astar_controller',
+        namespace=namespace,
+        parameters=[{
+            'namespace': namespace,
+            'use_sim_time': use_sim_time
+        }],
+        output='screen'
         )
-    
 
     # Create and return launch description
     ld = LaunchDescription([
@@ -222,7 +233,7 @@ def generate_launch_description():
         controller_to_spawners,
         slam_toolbox_node,
         operator_node,
-        
+        astart_controller_node,
 
     ])
     
