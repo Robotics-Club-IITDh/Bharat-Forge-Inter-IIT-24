@@ -54,6 +54,8 @@ ros2 launch slam launch.py namespace:=<Robot_name> x_pos:=<X_Coordinate> y_pos:=
 ros2 launch slam launch.py namespace:=robot_1 x_pos:=0.0 y_pos:=0.0
 ```
 
+**Make sure to launch all robots from same coordinates for accurate map merging**
+
 ### Giving Targets to the model
 
 Targets to a model are given by a node `Master_Controller`, we use `geometry_msgs/Point` to set Target to the system, the master controller will then calculate the nearest robot to the target and shall assign task to it, targets can be given by publishing a point message on `/target` topic, and you shall get the name of the assigned robot back on topic `/target_return`
