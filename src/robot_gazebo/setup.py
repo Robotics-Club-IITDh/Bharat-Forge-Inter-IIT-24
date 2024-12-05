@@ -24,7 +24,8 @@ setup(
     entry_points={
         'console_scripts': [
             'map_merger = robot_gazebo.map_merger:main',
-            'master_controller = robot_gazebo.master_controller:main'
+            'master_controller = robot_gazebo.master_controller:main',
+            'position_publisher = robot_gazebo.position_publisher:main'
         ],
     },
 )
