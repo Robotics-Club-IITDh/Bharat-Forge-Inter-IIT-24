@@ -11,6 +11,10 @@ class PytorchModelController(Node):
     def __init__(self):
         super().__init__("controller")
         
+        # Declare and get the namespace parameter
+        self.declare_parameter("namespace", "")
+        self.namespace = self.get_parameter("namespace").get_parameter_value().string_value
+        
         # QoS for reliable communication
         qos_profile = QoSProfile(depth=10)
         
@@ -25,7 +29,7 @@ class PytorchModelController(Node):
         # Subscribe to the /{namespace}/odom topic
         self.odom_subscription = self.create_subscription(
             Odometry,
-            f"/{self.get_namespace()}/odom",
+            f"/{self.namespace}/odom",
             self.odom_callback,
             qos_profile,
         )
@@ -33,7 +37,7 @@ class PytorchModelController(Node):
         # Publisher for velocity commands
         self.velocity_publisher = self.create_publisher(
             Twist,
-            f"/{self.get_namespace()}/cmd_vel",
+            f"/{self.namespace}/cmd_vel",
             qos_profile,
         )
         
@@ -61,7 +65,7 @@ class PytorchModelController(Node):
         self.linear_cmd = 0.0  # Linear velocity command
         self.angular_cmd = 0.0  # Angular velocity command
         
-        self.get_logger().info("PytorchModelController Node Started Successfully")
+        self.get_logger().info("Robot Controller Node Started Successfully")
 
     # ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     ############ ROS FUNCTIONS ###################
@@ -102,10 +106,6 @@ class PytorchModelController(Node):
         siny_cosp = 2.0 * (w * z + x * y)
         cosy_cosp = 1.0 - 2.0 * (y * y + z * z)
         return math.atan2(siny_cosp, cosy_cosp)
-    
-    def get_namespace(self):
-        """Returns the namespace of the node."""
-        return self.get_namespace()
 
 def main(args=None):
     rclpy.init(args=args)
