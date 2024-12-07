@@ -30,7 +30,7 @@ class PPOController(Node):
         weights = os.path.join(pkg_dir, "models", "ppo_weights.pth")
        
         # Load PPO model
-        self.ppo_model = PPOModel(state_dim=400, action_dim=2)  # Update dimensions as needed
+        self.ppo_model = PPOModel(state_dim=4, action_dim=2)  # Update dimensions as needed
         self.ppo_model.load_state_dict(torch.load(weights))  # Load trained weights
         self.ppo_model.eval()  # Set model to evaluation mode
 
