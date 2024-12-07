@@ -1,5 +1,0 @@
-[console_scripts]
-camera_node = slam.camera_node:main
-nearest_bot = slam.nearest_bot_node:main
-operator_node = slam.operatorNode:main
-
