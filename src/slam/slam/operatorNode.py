@@ -6,7 +6,7 @@ from geometry_msgs.msg import Twist
 import torch
 import numpy as np
 from ppo_model import PPOModel  # Import the PPO model
-from reward_lidar import RewardLiDAR  # Import the RewardLiDAR class
+from reward import RewardLiDAR  # Import the RewardLiDAR class
 
 class PPOController(Node):
     def __init__(self):
