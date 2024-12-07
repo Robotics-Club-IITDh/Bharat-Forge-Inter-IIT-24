@@ -3,6 +3,7 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid, Odometry
 from geometry_msgs.msg import Twist
+from sensor_msgs.msg import LaserScan
 import torch
 import numpy as np
 import os
@@ -60,6 +61,10 @@ class PPOController(Node):
             Odometry, f"/{self.namespace}/odom", self.odom_callback, 10
         )
         
+        self.lidar_subscription = self.create_subscription(
+            LaserScan, f"/{self.namespace}/scan", self.laser_callback, 10
+        )
+
         # Publisher
         self.velocity_publisher = self.create_publisher(
             Twist, f"/{self.namespace}/cmd_vel", 10
@@ -89,6 +94,17 @@ class PPOController(Node):
         self.current_orientation = self.quaternion_to_yaw(
             orientation.x, orientation.y, orientation.z, orientation.w
         )
+    def laser_callback(self, msg):
+        # Store LiDAR data in a structured format
+        self.current_lidar_data = {
+            "ranges": list(msg.ranges),  # Convert ranges to a list for easy access
+            "intensities": list(msg.intensities) if msg.intensities else [],  # Optional intensities
+            "angle_min": msg.angle_min,  # Minimum angle of the scan
+            "angle_max": msg.angle_max,  # Maximum angle of the scan
+            "angle_increment": msg.angle_increment,  # Angle increment between measurements
+            "range_min": msg.range_min,  # Minimum valid range of the sensor
+            "range_max": msg.range_max  # Maximum valid range of the sensor
+        }
 
     @staticmethod
     def quaternion_to_yaw(x, y, z, w):
