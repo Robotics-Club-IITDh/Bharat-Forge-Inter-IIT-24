@@ -42,10 +42,10 @@ class AStarController(Node):
         self.min_map_coverage = 0.1  # Minimum fraction of known cells required
         self.map_ready = False  # Flag to indicate if map is ready for navigation
         self.unknown_cell_threshold = -1  # Value in OccupancyGrid for unknown cells
-        self.target_area_radius = 1.0  # meters - radius around target to check for mapping
+        self.target_area_radius = 0.1  # meters - radius around target to check for mapping
         
         # Robot control parameters - Tuned for smoother movement
-        self.linear_speed = 0.3  # m/s
+        self.linear_speed = 0.5  # m/s
         self.angular_speed = 0.5  # rad/s
         self.position_tolerance = 0.2  # meters
         self.angle_tolerance = 0.15  # radians
@@ -78,7 +78,9 @@ class AStarController(Node):
         
         # Control loop timer
         self.create_timer(0.1, self.control_loop)
-        
+        self.current_coverage = 0.0
+        self.create_timer(5.0, self.log_map_coverage)
+
     def check_map_quality(self):
         """Check if the map has sufficient coverage for navigation"""
         if not self.map_data:
@@ -87,10 +89,14 @@ class AStarController(Node):
         # Count known cells
         total_cells = len(self.map_data.data)
         known_cells = sum(1 for cell in self.map_data.data if cell != self.unknown_cell_threshold)
-        coverage = known_cells / total_cells
+        self.current_coverage = known_cells / total_cells
         
-        self.get_logger().info(f'Map coverage: {coverage:.2f}')
-        return coverage >= self.min_map_coverage
+        return self.current_coverage >= self.min_map_coverage
+
+    def log_map_coverage(self):
+        """Separate timer callback to log map coverage at 0.5 Hz"""
+        if self.map_data:  # Only log if we have map data
+            self.get_logger().info(f'Map coverage: {self.current_coverage:.2f}')
         
     def check_target_area_mapped(self):
         """Check if the area around the target is sufficiently mapped"""
@@ -146,13 +152,17 @@ class AStarController(Node):
         if not self.map_data:
             self.get_logger().warn('No map data available yet')
             return
-            
+        
         if not self.check_map_quality():
-            self.get_logger().warn('Map quality insufficient for navigation')
+            self.get_logger().warn(f'Map quality insufficient for navigation. Coverage: {self.get_map_coverage():.2f}')
             return
             
         if not self.check_target_area_mapped():
             self.get_logger().warn('Target area not sufficiently mapped')
+            return
+
+        if not self.current_position:
+            self.get_logger().warn('No odometry data received yet')
             return
             
         self.get_logger().info('Map ready for navigation, planning path...')
@@ -315,6 +325,20 @@ class AStarController(Node):
         return path
     
     def control_loop(self):
+        # Add diagnostic logging
+        if not self.path:
+            self.get_logger().debug('No path available')
+            return
+        if not self.current_position:
+            self.get_logger().debug('No current position available')
+            return
+        if not self.cmd_vel_pub:
+            self.get_logger().debug('cmd_vel publisher not initialized')
+            return
+        if not self.current_path_index < len(self.path):
+            self.get_logger().debug('Current path index out of bounds')
+            return
+
         """Main control loop for robot movement"""
         if not all([self.path, self.current_position, 
                     self.current_path_index < len(self.path), 
