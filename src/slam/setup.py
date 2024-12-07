@@ -13,7 +13,13 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/config', ['config/controller_robot_1.yaml']),
         ('share/' + package_name + '/launch', ['launch/launch.py']),
-        ('share/' + package_name + '/config', ['config/mapper_params_online_async.yaml']),  # Added comma here
+        ('share/' + package_name + '/config', ['config/mapper_params_online_async.yaml']),
+        ('share/' + package_name + '/config', ['config/nav2_multirobot_params_1.yaml']),
+        ('share/' + package_name + '/models', ['models/ppo_model.py']),
+        ('share/' + package_name + '/models', ['models/ppo_weights.pth']),
+        ('share/' + package_name + '/models', ['models/reward.py']),
+
+
         (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
         (os.path.join('share', package_name, 'config'), glob('config/*')),
         (os.path.join('share', package_name, 'urdf'), glob('urdf/*'))  # Removed extra comma

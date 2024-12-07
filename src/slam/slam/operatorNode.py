@@ -3,19 +3,30 @@ import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid, Odometry
 from geometry_msgs.msg import Twist
-from sensor_msgs.msg import LaserScan
 import torch
 import numpy as np
+import os
+import sys
+from ament_index_python.packages import get_package_share_directory
+
+# Get the package share directory for 'slam'
+package_share_dir = get_package_share_directory('slam')
+
+# Point to the models directory within the package
+models_dir = os.path.join(package_share_dir, 'models')
+
+# Add the models directory to the Python module search path
+sys.path.append(models_dir)
+
 from ppo_model import PPOModel  # Import the PPO model
 from reward import RewardLiDAR  # Import the RewardLiDAR class
-
 
 class PPOController(Node):
     def __init__(self):
         super().__init__("ppo_controller")
 
         # Load PPO model
-        self.ppo_model = PPOModel(state_dim=763, action_dim=2)  # Adjust dimensions as needed
+        self.ppo_model = PPOModel(state_dim=400, action_dim=2)  # Update dimensions as needed
         self.ppo_model.load_state_dict(torch.load("ppo_weights.pth"))  # Load trained weights
         self.ppo_model.eval()  # Set model to evaluation mode
 
@@ -43,9 +54,6 @@ class PPOController(Node):
         self.odom_subscription = self.create_subscription(
             Odometry, f"/{self.namespace}/odom", self.odom_callback, 10
         )
-        self.lidar_subscription = self.create_subscription(
-            LaserScan, f"/{self.namespace}/scan", self.lidar_callback, 10
-        )
         
         # Publisher
         self.velocity_publisher = self.create_publisher(
@@ -64,10 +72,7 @@ class PPOController(Node):
 
     def map_callback(self, msg):
         """Handle map updates."""
-        self.map_data = np.array(msg.data).astype(np.float32)
-        # Normalize map values (-1 -> unknown, 0 -> free, 100 -> occupied)
-        self.map_data[self.map_data == -1] = 0
-        self.map_data = self.map_data / 100.0  # Normalize between 0 and 1
+        self.map_data = list(msg.data)
 
     def odom_callback(self, msg):
         """Handle odometry updates."""
@@ -79,12 +84,6 @@ class PPOController(Node):
         self.current_orientation = self.quaternion_to_yaw(
             orientation.x, orientation.y, orientation.z, orientation.w
         )
-
-    def lidar_callback(self, msg):
-        """Handle LiDAR updates."""
-        self.current_lidar_data = np.array(msg.ranges).astype(np.float32)
-        # Cap ranges at the max LiDAR range
-        self.current_lidar_data[self.current_lidar_data == float("inf")] = 10.0
 
     @staticmethod
     def quaternion_to_yaw(x, y, z, w):
@@ -122,15 +121,9 @@ class PPOController(Node):
 
     def prepare_state(self):
         """Prepare state vector for PPO."""
-        # Normalize LiDAR data
-        lidar_normalized = self.current_lidar_data / 10.0  # Scale LiDAR ranges to [0, 1]
-
-        # Use map data (e.g., first 360 cells) and normalize
-        map_normalized = self.map_data[:360]
-
-        # Combine LiDAR data, map data, and robot state
-        robot_state = [self.current_position[0], self.current_position[1], self.current_orientation]
-        state = np.concatenate((lidar_normalized, map_normalized, robot_state))
+        # Use map data, position, and orientation as inputs
+        state = self.map_data[:360]  # Example: Use first 360 cells of map
+        state.extend([self.current_position[0], self.current_position[1], self.current_orientation])
         return state
 
 def main(args=None):

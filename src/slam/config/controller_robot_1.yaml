@@ -8,6 +8,34 @@ controller_manager:
     diff_drive_controller:
       type: diff_drive_controller/DiffDriveController
 
+    use_sim_time: true
+    controller_frequency: 20.0
+    progress_checker_plugin: "progress_checker"
+    goal_checker_plugins: ["goal_checker"]
+    controller_plugins: ["FollowPath"]
+
+    FollowPath:
+      plugin: "dwb_core::DWBLocalPlanner"
+      debug_trajectory_details: true
+      min_vel_x: -0.5
+      max_vel_x: 0.5
+      max_vel_theta: 1.5
+      critics:
+        - dwb_critics::GoalAlignCritic
+        - dwb_critics::PathAlignCritic
+        - dwb_critics::ObstacleFootprintCritic
+        - dwb_critics::TwirlingCritic
+      GoalAlignCritic:
+        scale: 0.02
+      PathAlignCritic:
+        scale: 0.04
+      ObstacleFootprintCritic:
+        scale: 0.05
+        safety_radius: 0.1
+      TwirlingCritic:
+        scale: 0.01
+
+        
 diff_drive_controller:
   ros__parameters:
     left_wheel_names: ["${namespace}/left_wheel_joint"]

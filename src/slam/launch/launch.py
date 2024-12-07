@@ -5,7 +5,10 @@ from launch_ros.actions import Node
 from launch.actions import DeclareLaunchArgument, RegisterEventHandler, TimerAction
 from launch.substitutions import LaunchConfiguration, Command, PythonExpression
 from launch.event_handlers import OnProcessExit
-
+from nav2_common.launch import RewrittenYaml
+from launch_ros.substitutions import FindPackageShare
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 def generate_launch_description():
     # Declare launch arguments
@@ -48,16 +51,17 @@ def generate_launch_description():
     
     # Package directories
     pkg_dir = get_package_share_directory('slam')
+    nav2_bringup_dir = get_package_share_directory('nav2_bringup')
+    
     
     # Paths
     xacro_file = os.path.join(pkg_dir, 'urdf', 'robot.urdf.xacro')
     controller_config = os.path.join(pkg_dir, 'config', 'controller_robot_1.yaml')
     slam_config = os.path.join(pkg_dir, 'config', 'mapper_params_online_async.yaml')
+    nav2_params_file = os.path.join(nav2_bringup_dir, 'params', 'nav2_params.yaml')
+    
 
-    # Create frame IDs using proper substitutions for SLAM
-    # These ensure proper namespacing of TF frames
-    base_frame = PythonExpression(['"', namespace, '/base_link"'])
-    odom_frame = PythonExpression(['"', namespace, '/odom"'])
+
 
     # Get URDF via xacro
     robot_description_config = Command([
@@ -211,6 +215,21 @@ def generate_launch_description():
         output='screen'
         )
 
+
+    nav2_bringup_launch = IncludeLaunchDescription(
+                    PythonLaunchDescriptionSource([
+                        os.path.join(nav2_bringup_dir, 'launch', 'navigation_launch.py')
+                    ]), 
+                    launch_arguments={
+                        'namespace': namespace,
+                        'use_namespace': 'True',
+                        'params_file': nav2_params_file,
+                        'use_sim_time': 'True',
+                        'autostart': 'True',
+                        'map_topic': '/merged_map',
+                    }.items()
+                )
+
     # Create and return launch description
     ld = LaunchDescription([
         # Launch Arguments
@@ -233,7 +252,8 @@ def generate_launch_description():
         controller_to_spawners,
         slam_toolbox_node,
         operator_node,
-        astar_controller_node,
+        # astar_controller_node,
+        # nav2_bringup_launch,
 
     ])
     

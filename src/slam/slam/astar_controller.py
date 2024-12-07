@@ -21,6 +21,9 @@ class AStarController(Node):
     def __init__(self):
         super().__init__('astar_controller')
         
+        # Declare a parameter for the robot namespace (passed in at launch)
+        self.robot_namespace = self.declare_parameter('robot_namespace', '').value
+        
         # Robot configuration
         self.robot_width = 0.3  # meters
         self.robot_length = 0.4  # meters
@@ -36,24 +39,33 @@ class AStarController(Node):
         self.current_path_index = 0
         
         # Map quality parameters
-        self.min_map_coverage = 0.4  # Minimum fraction of known cells required
+        self.min_map_coverage = 0.1  # Minimum fraction of known cells required
         self.map_ready = False  # Flag to indicate if map is ready for navigation
         self.unknown_cell_threshold = -1  # Value in OccupancyGrid for unknown cells
         self.target_area_radius = 1.0  # meters - radius around target to check for mapping
         
         # Robot control parameters - Tuned for smoother movement
-        self.linear_speed = 0.3  # m/s - Reduced for smoother movement
-        self.angular_speed = 0.5  # rad/s - Reduced for smoother rotation
-        self.position_tolerance = 0.2  # meters - Increased for less strict positioning
-        self.angle_tolerance = 0.15  # radians - Increased for less strict rotation
+        self.linear_speed = 0.3  # m/s
+        self.angular_speed = 0.5  # rad/s
+        self.position_tolerance = 0.2  # meters
+        self.angle_tolerance = 0.15  # radians
         
-        # Create subscribers
+        # Create global subscribers
+        # Global map topic
+        self.create_subscription(
+            OccupancyGrid,
+            '/merge_map',  # Global merged map topic
+            self.map_callback,
+            10
+        )
+        
         self.create_subscription(
             String,
             '/target_return',
             self.target_return_callback,
             10
         )
+        
         self.create_subscription(
             Point,
             '/target',
@@ -61,7 +73,7 @@ class AStarController(Node):
             10
         )
         
-        # Publisher for robot velocity commands
+        # Publisher for robot velocity commands will be created after receiving robot name
         self.cmd_vel_pub = None
         
         # Control loop timer
@@ -113,25 +125,18 @@ class AStarController(Node):
         self.robot_name = msg.data
         self.get_logger().info(f'Received robot selection: {self.robot_name}')
         
-        if not self.cmd_vel_pub:
-            self.cmd_vel_pub = self.create_publisher(
-                Twist,
-                f'/{self.robot_name}/cmd_vel',
-                10
-            )
-            self.create_subscription(
-                Odometry,
-                f'/{self.robot_name}/odom',
-                self.odom_callback,
-                10
-            )
-            self.create_subscription(
-                OccupancyGrid,
-                f'/{self.robot_name}/map',
-                self.map_callback,
-                10
-            )
-            self.get_logger().info('Set up robot-specific publishers and subscribers')
+        # Once we have the robot_name, set up publishers and subscribers for that robot
+        # Because the node is launched in the controller namespace (robot_namespace), we can use relative topics.
+        # This will resolve to /<robot_namespace>/cmd_vel and /<robot_namespace>/odom
+        self.cmd_vel_pub = self.create_publisher(Twist, 'cmd_vel', 10)
+        self.create_subscription(
+            Odometry,
+            'odom',
+            self.odom_callback,
+            10
+        )
+        
+        self.get_logger().info('Set up robot-specific publishers and subscribers')
             
     def target_callback(self, msg):
         """Handle new target position"""
@@ -180,9 +185,9 @@ class AStarController(Node):
             return None
         
         grid_x = int((world_x - self.map_data.info.origin.position.x) / 
-                    self.map_data.info.resolution)
+                     self.map_data.info.resolution)
         grid_y = int((world_y - self.map_data.info.origin.position.y) / 
-                    self.map_data.info.resolution)
+                     self.map_data.info.resolution)
         
         if 0 <= grid_x < self.map_data.info.width and \
            0 <= grid_y < self.map_data.info.height:
@@ -192,9 +197,9 @@ class AStarController(Node):
     def grid_to_world(self, grid_x, grid_y):
         """Convert grid coordinates to world coordinates"""
         world_x = grid_x * self.map_data.info.resolution + \
-                 self.map_data.info.origin.position.x
+                  self.map_data.info.origin.position.x
         world_y = grid_y * self.map_data.info.resolution + \
-                 self.map_data.info.origin.position.y
+                  self.map_data.info.origin.position.y
         return (world_x, world_y)
     
     def is_valid_cell(self, x, y):
@@ -239,7 +244,7 @@ class AStarController(Node):
         closed_list = set()
         open_list = []
         cell_details = [[Cell() for _ in range(self.map_data.info.height)]
-                       for _ in range(self.map_data.info.width)]
+                        for _ in range(self.map_data.info.width)]
         
         # Add starting position to open list
         start_cell = cell_details[start_grid[0]][start_grid[1]]
@@ -265,7 +270,7 @@ class AStarController(Node):
             
             # Check all neighbors
             for di, dj in [(0,1), (1,0), (0,-1), (-1,0), 
-                          (1,1), (1,-1), (-1,1), (-1,-1)]:
+                           (1,1), (1,-1), (-1,1), (-1,-1)]:
                 neighbor_i = current_i + di
                 neighbor_j = current_j + dj
                 
@@ -276,22 +281,20 @@ class AStarController(Node):
                     continue
                 
                 # Calculate new path cost
-                if di * dj != 0:  # Diagonal movement
-                    new_g = cell_details[current_i][current_j].g + 1.414
-                else:  # Straight movement
-                    new_g = cell_details[current_i][current_j].g + 1
+                step_cost = 1.414 if di * dj != 0 else 1.0
+                new_g = cell_details[current_i][current_j].g + step_cost
                 
                 neighbor_cell = cell_details[neighbor_i][neighbor_j]
                 if neighbor_cell.f == float('inf') or neighbor_cell.g > new_g:
                     h = self.calculate_h_value(neighbor_i, neighbor_j, 
-                                            goal_grid[0], goal_grid[1])
+                                               goal_grid[0], goal_grid[1])
                     neighbor_cell.f = new_g + h
                     neighbor_cell.g = new_g
                     neighbor_cell.h = h
                     neighbor_cell.parent_i = current_i
                     neighbor_cell.parent_j = current_j
                     heapq.heappush(open_list, 
-                                 (neighbor_cell.f, neighbor_i, neighbor_j))
+                                   (neighbor_cell.f, neighbor_i, neighbor_j))
         
         self.get_logger().warn('No path found to target')
     
@@ -305,7 +308,7 @@ class AStarController(Node):
             path.append(self.grid_to_world(current[0], current[1]))
             temp = current
             current = (cell_details[temp[0]][temp[1]].parent_i,
-                      cell_details[temp[0]][temp[1]].parent_j)
+                       cell_details[temp[0]][temp[1]].parent_j)
         
         path.append(self.grid_to_world(current[0], current[1]))
         path.reverse()
@@ -314,7 +317,8 @@ class AStarController(Node):
     def control_loop(self):
         """Main control loop for robot movement"""
         if not all([self.path, self.current_position, 
-                   self.current_path_index < len(self.path)]):
+                    self.current_path_index < len(self.path), 
+                    self.cmd_vel_pub]):
             return
             
         # Get current target point from path
@@ -374,7 +378,6 @@ class AStarController(Node):
                 else:
                     self.get_logger().info(f'Moving to waypoint {self.current_path_index + 1}/{len(self.path)}')
     
-        # Add some debugging output
         self.get_logger().debug(f'Distance to target: {distance:.2f}, Angle diff: {math.degrees(angle_diff):.2f} degrees')
         self.get_logger().debug(f'Cmd_vel - linear: {cmd_vel.linear.x:.2f}, angular: {cmd_vel.angular.z:.2f}')
         
