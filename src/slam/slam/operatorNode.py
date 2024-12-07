@@ -104,11 +104,11 @@ class PPOController(Node):
         # Prepare state vector for PPO
         state = self.prepare_state()
         state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
-
+        self.get_logger().info(f"State tensor: {state_tensor}")
         # Get action from PPO model
         with torch.no_grad():
             action = self.ppo_model.get_action(state_tensor)
-
+        self.get_logger().info(f"Computed action: {action}")
         # Compute reward
         reward = self.reward_lidar.computeRewardFromLiDAR(
             robot_state=[*self.current_position, self.current_orientation],
@@ -116,7 +116,7 @@ class PPOController(Node):
             u=action
         )
         self.get_logger().info(f"Reward: {reward:.2f}")
-
+        self.get_logger().info(f"Publishing velocities: linear={action[0]}, angular={action[1]}")
         # Publish velocity commands
         cmd_msg = Twist()
         cmd_msg.linear.x = action[0]  # Linear velocity
