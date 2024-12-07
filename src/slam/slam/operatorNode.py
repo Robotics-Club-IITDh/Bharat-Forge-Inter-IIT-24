@@ -25,10 +25,11 @@ class PPOController(Node):
     def __init__(self):
         super().__init__("ppo_controller")
 
-         # PPO weight site
+        # PPO weight site
         pkg_dir = get_package_share_directory("slam")
         weights = os.path.join(pkg_dir, "models", "ppo_weights.pth")
-       
+
+
         # Load PPO model
         self.ppo_model = PPOModel(state_dim=4, action_dim=2)  # Update dimensions as needed
         self.ppo_model.load_state_dict(torch.load(weights))  # Load trained weights
@@ -53,7 +54,7 @@ class PPOController(Node):
         
         # Subscribers
         self.map_subscription = self.create_subscription(
-            OccupancyGrid, "/merge_map", self.map_callback, 10
+            OccupancyGrid, f"/{self.namespace}/map", self.map_callback, 10
         )
         self.odom_subscription = self.create_subscription(
             Odometry, f"/{self.namespace}/odom", self.odom_callback, 10
@@ -99,16 +100,17 @@ class PPOController(Node):
     def control_loop(self):
         """Compute actions, rewards, and publish velocity commands."""
         if self.map_data is None or self.current_position is None or self.current_lidar_data is None:
+            self.get_logger().info("No Map data")
             return  # Wait for data
-        
+        self.get_logger().info("Compute LOOP")
         # Prepare state vector for PPO
         state = self.prepare_state()
         state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
-        self.get_logger().info(f"State tensor: {state_tensor}")
+
         # Get action from PPO model
         with torch.no_grad():
             action = self.ppo_model.get_action(state_tensor)
-        self.get_logger().info(f"Computed action: {action}")
+
         # Compute reward
         reward = self.reward_lidar.computeRewardFromLiDAR(
             robot_state=[*self.current_position, self.current_orientation],
@@ -116,11 +118,12 @@ class PPOController(Node):
             u=action
         )
         self.get_logger().info(f"Reward: {reward:.2f}")
-        self.get_logger().info(f"Publishing velocities: linear={action[0]}, angular={action[1]}")
+
         # Publish velocity commands
         cmd_msg = Twist()
         cmd_msg.linear.x = action[0]  # Linear velocity
         cmd_msg.angular.z = action[1]  # Angular velocity
+        self.get_logger().info("Publishing Velocity")
         self.velocity_publisher.publish(cmd_msg)
 
     def prepare_state(self):
