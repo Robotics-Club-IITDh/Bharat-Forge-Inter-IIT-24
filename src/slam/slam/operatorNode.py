@@ -2,8 +2,8 @@
 import rclpy
 from rclpy.node import Node
 from nav_msgs.msg import OccupancyGrid, Odometry
+from sensor_msgs.msg import LaserScan  # Import LaserScan message
 from geometry_msgs.msg import Twist
-from sensor_msgs.msg import LaserScan
 import torch
 import numpy as np
 import os
@@ -29,47 +29,49 @@ class PPOController(Node):
         # PPO weight site
         pkg_dir = get_package_share_directory("slam")
         weights = os.path.join(pkg_dir, "models", "ppo_weights.pth")
-
-
+        
         # Load PPO model
         self.ppo_model = PPOModel(state_dim=4, action_dim=2)  # Update dimensions as needed
-        self.ppo_model.load_state_dict(torch.load(weights))  # Load trained weights
-        self.ppo_model.eval()  # Set model to evaluation mode
+        self.ppo_model.load_state_dict(torch.load(weights))
+        self.ppo_model.eval()
+
+        self.get_logger().info("Loaded PPO model and weights")
 
         # Initialize RewardLiDAR
         self.reward_lidar = RewardLiDAR(
-            num_beams=360,  # Match the LiDAR's resolution
+            num_beams=360,
             max_range=10.0,
             collision_threshold=0.5,
-            goal_position=(5.0, 5.0),  # Example goal position
+            goal_position=(5.0, 5.0),
             collision_penalty=100.0,
             action_cost=0.1,
             raycast_cost=20.0,
             goal_reward_scale=50.0,
             fov=np.pi
         )
+        self.get_logger().info("Initialized RewardLiDAR")
 
         # QoS for reliable communication
         self.declare_parameter("namespace", "")
         self.namespace = self.get_parameter("namespace").get_parameter_value().string_value
-        
+        self.get_logger().info(f"Namespace: {self.namespace}")
+
         # Subscribers
         self.map_subscription = self.create_subscription(
-            OccupancyGrid, f"/{self.namespace}/map", self.map_callback, 10
+            OccupancyGrid, "/merge_map", self.map_callback, 10
         )
         self.odom_subscription = self.create_subscription(
             Odometry, f"/{self.namespace}/odom", self.odom_callback, 10
         )
-        
-        self.lidar_subscription = self.create_subscription(
-            LaserScan, f"/{self.namespace}/scan", self.laser_callback, 10
+        self.scan_subscription = self.create_subscription(
+            LaserScan, f"/{self.namespace}/scan", self.scan_callback, 10
         )
 
         # Publisher
         self.velocity_publisher = self.create_publisher(
             Twist, f"/{self.namespace}/cmd_vel", 10
         )
-        
+
         # State variables
         self.map_data = None
         self.current_position = None
@@ -94,7 +96,9 @@ class PPOController(Node):
         self.current_orientation = self.quaternion_to_yaw(
             orientation.x, orientation.y, orientation.z, orientation.w
         )
-    def laser_callback(self, msg):
+
+    def scan_callback(self, msg):
+        """Handle laser scan updates."""
         # Store LiDAR data in a structured format
         self.current_lidar_data = {
             "ranges": list(msg.ranges),  # Convert ranges to a list for easy access
@@ -105,7 +109,6 @@ class PPOController(Node):
             "range_min": msg.range_min,  # Minimum valid range of the sensor
             "range_max": msg.range_max  # Maximum valid range of the sensor
         }
-
     @staticmethod
     def quaternion_to_yaw(x, y, z, w):
         """Convert quaternion to yaw angle."""
@@ -116,16 +119,18 @@ class PPOController(Node):
     def control_loop(self):
         """Compute actions, rewards, and publish velocity commands."""
         if self.map_data is None or self.current_position is None or self.current_lidar_data is None:
-            self.get_logger().info("No Map data")
+            self.get_logger().info("Waiting for all data inputs to be available...")
             return  # Wait for data
-        self.get_logger().info("Compute LOOP")
+
         # Prepare state vector for PPO
         state = self.prepare_state()
         state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
+        self.get_logger().info(f"State tensor: {state_tensor}")
 
         # Get action from PPO model
         with torch.no_grad():
             action = self.ppo_model.get_action(state_tensor)
+        self.get_logger().info(f"Computed action: {action}")
 
         # Compute reward
         reward = self.reward_lidar.computeRewardFromLiDAR(
@@ -139,8 +144,8 @@ class PPOController(Node):
         cmd_msg = Twist()
         cmd_msg.linear.x = action[0]  # Linear velocity
         cmd_msg.angular.z = action[1]  # Angular velocity
-        self.get_logger().info("Publishing Velocity")
         self.velocity_publisher.publish(cmd_msg)
+        self.get_logger().info(f"Published velocities: linear={action[0]}, angular={action[1]}")
 
     def prepare_state(self):
         """Prepare state vector for PPO."""
