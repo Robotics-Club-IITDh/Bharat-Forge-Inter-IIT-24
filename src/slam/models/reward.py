@@ -43,6 +43,14 @@ class RewardLiDAR:
 
     def denoiseLiDAR(self, lidar_ranges):
         """Apply median filter to denoise LiDAR data."""
+        # Ensure lidar_ranges is a numpy array (if it's not already)
+        if isinstance(lidar_ranges, list):
+            lidar_ranges = np.array(lidar_ranges)  # Convert list to numpy array
+        # Check if the input is of correct type (numpy array)
+        if not isinstance(lidar_ranges, np.ndarray):
+            raise ValueError("lidar_ranges should be a numpy array or a list.")
+        
+        # Apply median filter to the lidar_ranges
         return medfilt(lidar_ranges, kernel_size=3)
 
     def checkInCollision(self, lidar_ranges):
