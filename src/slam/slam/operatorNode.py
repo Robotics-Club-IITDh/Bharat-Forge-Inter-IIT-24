@@ -98,17 +98,21 @@ class PPOController(Node):
         )
 
     def scan_callback(self, msg):
-        """Handle laser scan updates."""
-        # Store LiDAR data in a structured format
+
+        # Convert ranges to a NumPy array
         self.current_lidar_data = {
-            "ranges": list(msg.ranges),  # Convert ranges to a list for easy access
-            "intensities": list(msg.intensities) if msg.intensities else [],  # Optional intensities
-            "angle_min": msg.angle_min,  # Minimum angle of the scan
-            "angle_max": msg.angle_max,  # Maximum angle of the scan
-            "angle_increment": msg.angle_increment,  # Angle increment between measurements
-            "range_min": msg.range_min,  # Minimum valid range of the sensor
-            "range_max": msg.range_max  # Maximum valid range of the sensor
+            "ranges": np.array(msg.ranges, dtype=np.float32),  # Use NumPy for efficient processing
+            "intensities": np.array(msg.intensities, dtype=np.float32) if msg.intensities else np.array([]),
+            "angle_min": msg.angle_min,
+            "angle_max": msg.angle_max,
+            "angle_increment": msg.angle_increment,
+            "range_min": msg.range_min,
+            "range_max": msg.range_max
         }
+        # Debug: Print the first 10 range values
+        self.get_logger().debug(f"LiDAR Ranges (first 10): {self.current_lidar_data['ranges'][:10]}")
+    
+
     @staticmethod
     def quaternion_to_yaw(x, y, z, w):
         """Convert quaternion to yaw angle."""
@@ -125,27 +129,49 @@ class PPOController(Node):
         # Prepare state vector for PPO
         state = self.prepare_state()
         state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
-        self.get_logger().info(f"State tensor: {state_tensor}")
+        self.get_logger().debug(f"State tensor shape: {state_tensor.shape}")
 
-        # Get action from PPO model
+        # Get action from PPO model - now returns (linear_vel, angular_vel)
         with torch.no_grad():
-            action = self.ppo_model.get_action(state_tensor)
-        self.get_logger().info(f"Computed action: {action}")
+            linear_vel, angular_vel = self.ppo_model.get_action(state_tensor)
+        self.get_logger().debug(f"Computed action: linear={linear_vel}, angular={angular_vel}")
 
-        # Compute reward
-        reward = self.reward_lidar.computeRewardFromLiDAR(
-            robot_state=[*self.current_position, self.current_orientation],
-            lidar_ranges=self.current_lidar_data,
-            u=action
+        # Extract just the ranges array from the LiDAR data dictionary
+        lidar_ranges = self.current_lidar_data['ranges']
+        
+        # Ensure lidar_ranges is a numpy array
+        if not isinstance(lidar_ranges, np.ndarray):
+            lidar_ranges = np.array(lidar_ranges, dtype=np.float32)
+        
+        # Handle inf and nan values in LiDAR data
+        min_range = self.current_lidar_data['range_min']
+        max_range = self.reward_lidar.max_range
+        
+        lidar_ranges = np.clip(
+            np.nan_to_num(lidar_ranges, nan=max_range, posinf=max_range, neginf=min_range),
+            min_range,
+            max_range
         )
-        self.get_logger().info(f"Reward: {reward:.2f}")
+
+        # Compute reward using action as a 2D array
+        action = np.array([linear_vel, angular_vel])
+        try:
+            reward = self.reward_lidar.computeRewardFromLiDAR(
+                robot_state=[*self.current_position, self.current_orientation],
+                lidar_ranges=lidar_ranges,
+                u=action
+            )
+            self.get_logger().info(f"Reward: {reward:.2f}")
+        except Exception as e:
+            self.get_logger().error(f"Error computing reward: {str(e)}")
+            return
 
         # Publish velocity commands
         cmd_msg = Twist()
-        cmd_msg.linear.x = action[0]  # Linear velocity
-        cmd_msg.angular.z = action[1]  # Angular velocity
+        cmd_msg.linear.x = float(linear_vel)
+        cmd_msg.angular.z = float(angular_vel)
         self.velocity_publisher.publish(cmd_msg)
-        self.get_logger().info(f"Published velocities: linear={action[0]}, angular={action[1]}")
+        self.get_logger().debug(f"Published velocities: linear={linear_vel}, angular={angular_vel}")
 
     def prepare_state(self):
         """Prepare state vector for PPO."""
