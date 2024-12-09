@@ -40,7 +40,7 @@ class PPOController(Node):
         # Initialize RewardLiDAR
         self.reward_lidar = RewardLiDAR(
             num_beams=360,
-            max_range=10.0,
+            max_range=10.0, 
             collision_threshold=0.5,
             goal_position=(5.0, 5.0),
             collision_penalty=100.0,
@@ -121,57 +121,86 @@ class PPOController(Node):
         return np.arctan2(siny_cosp, cosy_cosp)
 
     def control_loop(self):
-        """Compute actions, rewards, and publish velocity commands."""
-        if self.map_data is None or self.current_position is None or self.current_lidar_data is None:
-            self.get_logger().info("Waiting for all data inputs to be available...")
-            return  # Wait for data
+    if self.map_data is None or self.current_position is None or self.current_lidar_data is None:
+        self.get_logger().info("Waiting for all data inputs to be available...")
+        return
 
-        # Prepare state vector for PPO
-        state = self.prepare_state()
-        state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
-        self.get_logger().debug(f"State tensor shape: {state_tensor.shape}")
+    # Prepare state and LiDAR data
+    state = self.prepare_state()
+    state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
+    
+    # Process LiDAR data
+    lidar_ranges = self.current_lidar_data['ranges']
+    if not isinstance(lidar_ranges, np.ndarray):
+        lidar_ranges = np.array(lidar_ranges, dtype=np.float32)
+    
+    # Handle inf and nan values in LiDAR data
+    min_range = self.current_lidar_data['range_min']
+    max_range = self.reward_lidar.max_range
+    lidar_ranges = np.clip(
+        np.nan_to_num(lidar_ranges, nan=max_range, posinf=max_range, neginf=min_range),
+        min_range,
+        max_range
+    )
 
-        # Get action from PPO model - now returns (linear_vel, angular_vel)
-        with torch.no_grad():
-            linear_vel, angular_vel = self.ppo_model.get_action(state_tensor)
-        self.get_logger().debug(f"Computed action: linear={linear_vel}, angular={angular_vel}")
+    # Check for obstacles
+    collision_threshold = self.reward_lidar.collision_threshold
+    min_distance = np.min(lidar_ranges)
+    is_obstacle_close = min_distance < collision_threshold * 2  # Double the collision threshold for safety
 
-        # Extract just the ranges array from the LiDAR data dictionary
-        lidar_ranges = self.current_lidar_data['ranges']
+    # Get base action from PPO model
+    with torch.no_grad():
+        base_linear_vel, base_angular_vel = self.ppo_model.get_action(state_tensor)
+
+    # Adjust velocities based on obstacles
+    if is_obstacle_close:
+        # Get the index of minimum distance reading
+        min_distance_idx = np.argmin(lidar_ranges)
+        num_beams = len(lidar_ranges)
         
-        # Ensure lidar_ranges is a numpy array
-        if not isinstance(lidar_ranges, np.ndarray):
-            lidar_ranges = np.array(lidar_ranges, dtype=np.float32)
+        # Determine if obstacle is more to the left or right
+        is_obstacle_left = min_distance_idx < num_beams / 2
         
-        # Handle inf and nan values in LiDAR data
-        min_range = self.current_lidar_data['range_min']
-        max_range = self.reward_lidar.max_range
+        # Modify velocities for obstacle avoidance
+        linear_vel = 0.0  # Stop forward motion
         
-        lidar_ranges = np.clip(
-            np.nan_to_num(lidar_ranges, nan=max_range, posinf=max_range, neginf=min_range),
-            min_range,
-            max_range
+        # Turn away from obstacle
+        if is_obstacle_left:
+            angular_vel = -0.3  # Turn right
+        else:
+            angular_vel = 0.3   # Turn left
+            
+        self.get_logger().info(f"Obstacle detected! Distance: {min_distance:.2f}, Adjusting velocities")
+    else:
+        # Use base velocities when no obstacles
+        linear_vel = base_linear_vel
+        angular_vel = base_angular_vel
+
+    # Compute reward
+    action = np.array([linear_vel, angular_vel])
+    try:
+        reward = self.reward_lidar.computeRewardFromLiDAR(
+            robot_state=[*self.current_position, self.current_orientation],
+            lidar_ranges=lidar_ranges,
+            u=action
         )
+        self.get_logger().info(f"Reward: {reward:.2f}")
+    except Exception as e:
+        self.get_logger().error(f"Error computing reward: {str(e)}")
+        return
 
-        # Compute reward using action as a 2D array
-        action = np.array([linear_vel, angular_vel])
-        try:
-            reward = self.reward_lidar.computeRewardFromLiDAR(
-                robot_state=[*self.current_position, self.current_orientation],
-                lidar_ranges=lidar_ranges,
-                u=action
-            )
-            self.get_logger().info(f"Reward: {reward:.2f}")
-        except Exception as e:
-            self.get_logger().error(f"Error computing reward: {str(e)}")
-            return
+    # Publish velocity commands
+    cmd_msg = Twist()
+    cmd_msg.linear.x = float(linear_vel)
+    cmd_msg.angular.z = float(angular_vel)
+    self.velocity_publisher.publish(cmd_msg)
+    
+    # Log final velocities
+    self.get_logger().debug(
+        f"Published velocities: linear={linear_vel:.3f}, angular={angular_vel:.3f}, "
+        f"Obstacle detected: {is_obstacle_close}"
+    )
 
-        # Publish velocity commands
-        cmd_msg = Twist()
-        cmd_msg.linear.x = float(linear_vel)
-        cmd_msg.angular.z = float(angular_vel)
-        self.velocity_publisher.publish(cmd_msg)
-        self.get_logger().debug(f"Published velocities: linear={linear_vel}, angular={angular_vel}")
 
     def prepare_state(self):
         """Prepare state vector for PPO."""
