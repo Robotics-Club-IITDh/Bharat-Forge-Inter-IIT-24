@@ -1,220 +1,426 @@
 #!/usr/bin/env python3
 import rclpy
 from rclpy.node import Node
-from nav_msgs.msg import OccupancyGrid, Odometry
-from sensor_msgs.msg import LaserScan  # Import LaserScan message
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, PoseStamped
+from nav_msgs.msg import Odometry
+from sensor_msgs.msg import LaserScan
+from std_msgs.msg import String
+from tf_transformations import euler_from_quaternion
+from rclpy.qos import QoSProfile, ReliabilityPolicy, HistoryPolicy, DurabilityPolicy
 import torch
 import numpy as np
 import os
-import sys
-from ament_index_python.packages import get_package_share_directory
+from .ppo_model import PPOModel  # Import the existing PPO model
+from .exploration_reward import ExplorationReward  # Import the exploration reward system
 
-# Get the package share directory for 'slam'
-package_share_dir = get_package_share_directory('slam')
-
-# Point to the models directory within the package
-models_dir = os.path.join(package_share_dir, 'models')
-
-# Add the models directory to the Python module search path
-sys.path.append(models_dir)
-
-from ppo_model import PPOModel  # Import the PPO model
-from reward import RewardLiDAR  # Import the RewardLiDAR class
-
-class PPOController(Node):
+class OperatorNode(Node):
     def __init__(self):
-        super().__init__("ppo_controller")
-
-        # PPO weight site
-        pkg_dir = get_package_share_directory("slam")
-        weights = os.path.join(pkg_dir, "models", "ppo_weights.pth")
+        super().__init__('operator_node')
         
-        # Load PPO model
-        self.ppo_model = PPOModel(state_dim=363, action_dim=2)  # Update dimensions as needed
-        self.ppo_model.load_state_dict(torch.load(weights))
+        # Initialize device
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        
+        # Initialize model
+        self.state_dim = 8  # [x, y, cos(θ), sin(θ), goal_dist, goal_angle, linear_vel, angular_vel]
+        self.lidar_dim = 8  # 8 sectors of processed LiDAR data
+        self.ppo_model = PPOModel(self.state_dim, self.lidar_dim).to(self.device)
+        
+        # Load model weights
+        weights_path = "ppo_weights.pth"
+        if os.path.exists(weights_path):
+            self.ppo_model.load_state_dict(torch.load(weights_path, map_location=self.device))
+            self.get_logger().info(f"Model weights loaded from {weights_path}")
+        else:
+            self.get_logger().warn(f"No weights found at {weights_path}")
+        
         self.ppo_model.eval()
-
-        self.get_logger().info("Loaded PPO model and weights")
-
-        # Initialize RewardLiDAR
-        self.reward_lidar = RewardLiDAR(
-            num_beams=360,
-            max_range=10.0, 
-            collision_threshold=0.5,
-            goal_position=(5.0, 5.0),
-            collision_penalty=100.0,
-            action_cost=0.1,
-            raycast_cost=20.0,
-            goal_reward_scale=50.0,
-            fov=np.pi
-        )
-        self.get_logger().info("Initialized RewardLiDAR")
-
-        # QoS for reliable communication
-        self.declare_parameter("namespace", "")
-        self.namespace = self.get_parameter("namespace").get_parameter_value().string_value
-        self.get_logger().info(f"Namespace: {self.namespace}")
-
-        # Subscribers
-        self.map_subscription = self.create_subscription(
-            OccupancyGrid, "/merge_map", self.map_callback, 10
-        )
-        self.odom_subscription = self.create_subscription(
-            Odometry, f"/{self.namespace}/odom", self.odom_callback, 10
-        )
-        self.scan_subscription = self.create_subscription(
-            LaserScan, f"/{self.namespace}/scan", self.scan_callback, 10
-        )
-
-        # Publisher
-        self.velocity_publisher = self.create_publisher(
-            Twist, f"/{self.namespace}/cmd_vel", 10
-        )
-
-        # State variables
-        self.map_data = None
-        self.current_position = None
-        self.current_orientation = None
-        self.current_lidar_data = None  # Store LiDAR data here
         
-        # Timer for action inference
-        self.create_timer(0.1, self.control_loop)  # 10 Hz
-        self.get_logger().info("PPO Controller with Reward Function Initialized")
-
-    def map_callback(self, msg):
-        """Handle map updates."""
-        self.map_data = list(msg.data)
+        # Initialize exploration parameters
+        self.exploration_phase = True
+        self.exploration_time = 60.0  # Time in seconds for initial exploration
+        self.start_time = self.get_clock().now()
+        self.exploration_steps = 0
+        self.random_action_prob = 0.3  # Probability of taking random action during exploration
+        
+        # Initialize reward system
+        self.reward_system = ExplorationReward(
+            num_beams=self.lidar_dim,
+            max_range=3.5,
+            collision_threshold=0.3
+        )
+        
+        # Movement control parameters
+        self.min_straight_distance = 1.0  # Minimum distance for straight movement
+        self.direction_change_threshold = 0.5  # Threshold for changing direction
+        self.current_action = None
+        self.action_repeat_count = 0
+        self.max_action_repeat = 20  # Maximum steps to repeat an action
+        self.collision_recovery_steps = 10  # Steps to take during collision recovery
+        self.recovery_count = 0
+        
+        # Initialize state variables
+        self.robot_position = np.zeros(2)
+        self.robot_orientation = 0.0
+        self.robot_linear_vel = 0.0
+        self.robot_angular_vel = 0.0
+        self.goal_position = np.zeros(2)
+        self.latest_scan = None
+        
+        # Position history for recovery
+        self.position_history = []
+        self.max_history = 50
+        
+        # Set up QoS profiles
+        sensor_qos = QoSProfile(
+            reliability=ReliabilityPolicy.BEST_EFFORT,
+            durability=DurabilityPolicy.VOLATILE,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=1
+        )
+        
+        reliable_qos = QoSProfile(
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+            history=HistoryPolicy.KEEP_LAST,
+            depth=10
+        )
+        
+        # Create publishers and subscribers
+        self.cmd_vel_pub = self.create_publisher(
+            Twist, 
+            'cmd_vel',
+            reliable_qos
+        )
+        
+        self.metrics_pub = self.create_publisher(
+            String,
+            'exploration_metrics',
+            10
+        )
+        
+        self.create_subscription(
+            Odometry,
+            'odom',
+            self.odom_callback,
+            sensor_qos
+        )
+        
+        self.create_subscription(
+            LaserScan,
+            'scan',
+            self.scan_callback,
+            sensor_qos
+        )
+        
+        self.create_subscription(
+            PoseStamped,
+            'goal_pose',
+            self.goal_callback,
+            reliable_qos
+        )
+        
+        # Create control loop timer (10 Hz)
+        self.create_timer(0.1, self.control_loop)
+        
+        # Status variables
+        self.goal_reached_threshold = 0.3
+        self.is_goal_active = False
+        self.in_recovery_mode = False
+        
+        # Debug flags
+        self.debug_mode = True
+        
+        self.get_logger().info("Enhanced operator node initialized")
 
     def odom_callback(self, msg):
-        """Handle odometry updates."""
-        self.current_position = (
-            msg.pose.pose.position.x,
-            msg.pose.pose.position.y,
+        """Update robot state from odometry"""
+        # Position
+        self.robot_position[0] = msg.pose.pose.position.x
+        self.robot_position[1] = msg.pose.pose.position.y
+        
+        # Orientation (convert quaternion to euler)
+        orientation_q = msg.pose.pose.orientation
+        _, _, self.robot_orientation = euler_from_quaternion(
+            [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
         )
-        orientation = msg.pose.pose.orientation
-        self.current_orientation = self.quaternion_to_yaw(
-            orientation.x, orientation.y, orientation.z, orientation.w
-        )
+        
+        # Velocities
+        self.robot_linear_vel = msg.twist.twist.linear.x
+        self.robot_angular_vel = msg.twist.twist.angular.z
+        
+        if self.debug_mode:
+            self.get_logger().debug(
+                f"Odom update - Pos: [{self.robot_position[0]:.2f}, {self.robot_position[1]:.2f}], "
+                f"Orientation: {self.robot_orientation:.2f}, "
+                f"Vel: [{self.robot_linear_vel:.2f}, {self.robot_angular_vel:.2f}]"
+            )
+
+    def update_position_history(self):
+        """Update position history for recovery"""
+        current_pos = np.array([self.robot_position[0], self.robot_position[1]])
+        self.position_history.append(current_pos)
+        if len(self.position_history) > self.max_history:
+            self.position_history.pop(0)
+
+    def get_recovery_position(self):
+        """Get position to return to after collision"""
+        if len(self.position_history) < 10:
+            return None
+        return self.position_history[-10]  # Return to position 10 steps ago
+
+    def process_lidar_data(self, ranges):
+        """Process LiDAR data into sectors"""
+        if ranges is None:
+            return np.zeros(self.lidar_dim)
+            
+        # Convert inf values to max_range
+        processed_ranges = np.array(ranges)
+        processed_ranges[np.isinf(processed_ranges)] = 3.5  # max range
+        
+        # Split into sectors
+        sectors = np.array_split(processed_ranges, self.lidar_dim)
+        sector_mins = np.array([np.min(sector) for sector in sectors])
+        
+        # Normalize to [0, 1]
+        normalized_sectors = np.clip(sector_mins / 3.5, 0, 1)
+        
+        return normalized_sectors
 
     def scan_callback(self, msg):
+        """Store and process latest LiDAR scan"""
+        self.latest_scan = msg.ranges
+        if self.debug_mode:
+            self.get_logger().debug(f"Received scan with {len(msg.ranges)} points")
 
-        # Convert ranges to a NumPy array
-        self.current_lidar_data = {
-            "ranges": np.array(msg.ranges, dtype=np.float32),  # Use NumPy for efficient processing
-            "intensities": np.array(msg.intensities, dtype=np.float32) if msg.intensities else np.array([]),
-            "angle_min": msg.angle_min,
-            "angle_max": msg.angle_max,
-            "angle_increment": msg.angle_increment,
-            "range_min": msg.range_min,
-            "range_max": msg.range_max
-        }
-        # Debug: Print the first 10 range values
-        self.get_logger().debug(f"LiDAR Ranges (first 10): {self.current_lidar_data['ranges'][:10]}")
-    
+    def goal_callback(self, msg):
+        """Update goal position"""
+        self.goal_position[0] = msg.pose.position.x
+        self.goal_position[1] = msg.pose.position.y
+        self.is_goal_active = True
+        self.get_logger().info(f"New goal received: [{self.goal_position[0]:.2f}, {self.goal_position[1]:.2f}]")
 
-    @staticmethod
-    def quaternion_to_yaw(x, y, z, w):
-        """Convert quaternion to yaw angle."""
-        siny_cosp = 2.0 * (w * z + x * y)
-        cosy_cosp = 1.0 - 2.0 * (y * y + z * z)
-        return np.arctan2(siny_cosp, cosy_cosp)
+    def calculate_safe_direction(self, scan):
+        """Calculate safe direction based on LiDAR data"""
+        if scan is None:
+            return 0.0
+        
+        # Convert scan to numpy array and handle inf values
+        scan_array = np.array(scan)
+        scan_array[np.isinf(scan_array)] = self.reward_system.max_range
+        
+        # Find the direction with most open space
+        sector_size = len(scan_array) // 8
+        sectors = np.array_split(scan_array, 8)
+        sector_averages = [np.mean(sector) for sector in sectors]
+        best_sector = np.argmax(sector_averages)
+        
+        # Convert sector index to angle
+        angle = (best_sector - 3.5) * (np.pi / 4)  # -pi/2 to pi/2
+        return angle
+
+    def check_exploration_phase(self):
+        """Check if we should still be in exploration phase"""
+        current_time = self.get_clock().now()
+        elapsed_time = (current_time - self.start_time).nanoseconds / 1e9
+        
+        if self.exploration_phase and elapsed_time > self.exploration_time:
+            self.exploration_phase = False
+            self.get_logger().info("Exploration phase complete, switching to normal operation")
+            
+        return self.exploration_phase
+
+    def publish_metrics(self):
+        """Publish exploration metrics"""
+        stats = self.reward_system.get_exploration_stats()
+        metrics_msg = String()
+        metrics_msg.data = f"Explored cells: {stats['explored_cells']}, Coverage: {stats['exploration_coverage']:.2f}m²"
+        self.metrics_pub.publish(metrics_msg)
+
+    def get_exploration_action(self):
+        """Generate exploration action with improved consistency"""
+        # If in recovery mode, generate recovery action
+        if self.in_recovery_mode:
+            if self.recovery_count >= self.collision_recovery_steps:
+                self.in_recovery_mode = False
+                self.recovery_count = 0
+            else:
+                self.recovery_count += 1
+                return self.reward_system.get_recovery_action()
+        
+        # Check if we should continue current action
+        if (self.current_action is not None and 
+            self.action_repeat_count < self.max_action_repeat):
+            
+            # Check if path is still clear
+            is_obstacle_close, _ = self.reward_system.check_obstacle_proximity(self.latest_scan)
+            
+            if not is_obstacle_close:
+                self.action_repeat_count += 1
+                return self.current_action
+        
+        # Generate new action
+        if np.random.random() < self.random_action_prob:
+            # Calculate safe direction based on LiDAR
+            safe_angle = self.calculate_safe_direction(self.latest_scan)
+            
+            # Generate action with preference for straight movement
+            if np.random.random() < 0.7:  # 70% chance for forward movement
+                linear_vel = np.random.uniform(0.2, 0.5)
+                angular_vel = safe_angle * 0.5  # Reduced angular velocity for smoother turns
+            else:
+                linear_vel = np.random.uniform(-0.2, 0.3)
+                angular_vel = np.random.uniform(-0.8, 0.8)
+        else:
+            # Use model's action but add minimal noise for exploration
+            state = self.prepare_state_input()
+            with torch.no_grad():
+                action, _ = self.ppo_model.get_action(state, deterministic=True)
+            
+            linear_vel = float(action[0, 0].cpu()) + np.random.normal(0, 0.05)
+            angular_vel = float(action[0, 1].cpu()) + np.random.normal(0, 0.1)
+        
+        # Clip velocities
+        linear_vel = np.clip(linear_vel, -0.3, 0.5)
+        angular_vel = np.clip(angular_vel, -1.0, 1.0)
+        
+        # Update current action
+        self.current_action = np.array([linear_vel, angular_vel])
+        self.action_repeat_count = 0
+        
+        return self.current_action
+
+    def prepare_state_input(self):
+        """Prepare the state input for the PPO model"""
+        # Calculate goal distance and angle
+        goal_vector = self.goal_position - self.robot_position
+        goal_distance = np.linalg.norm(goal_vector)
+        goal_angle = np.arctan2(goal_vector[1], goal_vector[0]) - self.robot_orientation
+        
+        # Normalize goal angle to [-π, π]
+        goal_angle = np.arctan2(np.sin(goal_angle), np.cos(goal_angle))
+        
+        # Process LiDAR data
+        lidar_features = self.process_lidar_data(self.latest_scan)
+        
+        # Combine all state features
+        state = np.array([
+            self.robot_position[0],
+            self.robot_position[1],
+            np.cos(self.robot_orientation),
+            np.sin(self.robot_orientation),
+            goal_distance,
+            goal_angle,
+            self.robot_linear_vel,
+            self.robot_angular_vel,
+            *lidar_features  # Add processed LiDAR features
+        ])
+        
+        return torch.FloatTensor(state).unsqueeze(0).to(self.device)
+
+    def check_goal_reached(self):
+        """Check if current goal has been reached"""
+        if not self.is_goal_active:
+            return False
+            
+        distance_to_goal = np.linalg.norm(
+            self.robot_position - self.goal_position
+        )
+        
+        if distance_to_goal < self.goal_reached_threshold:
+            self.is_goal_active = False
+            self.get_logger().info("Goal reached!")
+            return True
+            
+        return False
 
     def control_loop(self):
-    if self.map_data is None or self.current_position is None or self.current_lidar_data is None:
-        self.get_logger().info("Waiting for all data inputs to be available...")
-        return
-
-    # Prepare state and LiDAR data
-    state = self.prepare_state()
-    state_tensor = torch.tensor(state, dtype=torch.float32).unsqueeze(0)
-    
-    # Process LiDAR data
-    lidar_ranges = self.current_lidar_data['ranges']
-    if not isinstance(lidar_ranges, np.ndarray):
-        lidar_ranges = np.array(lidar_ranges, dtype=np.float32)
-    
-    # Handle inf and nan values in LiDAR data
-    min_range = self.current_lidar_data['range_min']
-    max_range = self.reward_lidar.max_range
-    lidar_ranges = np.clip(
-        np.nan_to_num(lidar_ranges, nan=max_range, posinf=max_range, neginf=min_range),
-        min_range,
-        max_range
-    )
-
-    # Check for obstacles
-    collision_threshold = self.reward_lidar.collision_threshold
-    min_distance = np.min(lidar_ranges)
-    is_obstacle_close = min_distance < collision_threshold * 2  # Double the collision threshold for safety
-
-    # Get base action from PPO model
-    with torch.no_grad():
-        base_linear_vel, base_angular_vel = self.ppo_model.get_action(state_tensor)
-
-    # Adjust velocities based on obstacles
-    if is_obstacle_close:
-        # Get the index of minimum distance reading
-        min_distance_idx = np.argmin(lidar_ranges)
-        num_beams = len(lidar_ranges)
-        
-        # Determine if obstacle is more to the left or right
-        is_obstacle_left = min_distance_idx < num_beams / 2
-        
-        # Modify velocities for obstacle avoidance
-        linear_vel = 0.0  # Stop forward motion
-        
-        # Turn away from obstacle
-        if is_obstacle_left:
-            angular_vel = -0.3  # Turn right
-        else:
-            angular_vel = 0.3   # Turn left
+        """Main control loop with exploration and collision recovery"""
+        try:
+            # Update position history
+            self.update_position_history()
             
-        self.get_logger().info(f"Obstacle detected! Distance: {min_distance:.2f}, Adjusting velocities")
-    else:
-        # Use base velocities when no obstacles
-        linear_vel = base_linear_vel
-        angular_vel = base_angular_vel
-
-    # Compute reward
-    action = np.array([linear_vel, angular_vel])
-    try:
-        reward = self.reward_lidar.computeRewardFromLiDAR(
-            robot_state=[*self.current_position, self.current_orientation],
-            lidar_ranges=lidar_ranges,
-            u=action
-        )
-        self.get_logger().info(f"Reward: {reward:.2f}")
-    except Exception as e:
-        self.get_logger().error(f"Error computing reward: {str(e)}")
-        return
-
-    # Publish velocity commands
-    cmd_msg = Twist()
-    cmd_msg.linear.x = float(linear_vel)
-    cmd_msg.angular.z = float(angular_vel)
-    self.velocity_publisher.publish(cmd_msg)
-    
-    # Log final velocities
-    self.get_logger().debug(
-        f"Published velocities: linear={linear_vel:.3f}, angular={angular_vel:.3f}, "
-        f"Obstacle detected: {is_obstacle_close}"
-    )
-
-
-    def prepare_state(self):
-        """Prepare state vector for PPO."""
-        # Use map data, position, and orientation as inputs
-        state = self.map_data[:360]  # Example: Use first 360 cells of map
-        state.extend([self.current_position[0], self.current_position[1], self.current_orientation])
-        return state
+            # Check if we have LiDAR data
+            if self.latest_scan is None:
+                return
+                
+            # Check for collision or near-collision
+            is_collision = self.reward_system.check_collision(self.latest_scan)
+            is_near_obstacle, obstacle_distance = self.reward_system.check_obstacle_proximity(self.latest_scan)
+            
+            if is_collision and not self.in_recovery_mode:
+                self.get_logger().warn("Collision detected! Entering recovery mode")
+                self.in_recovery_mode = True
+                self.recovery_count = 0
+                # Stop immediately
+                self.cmd_vel_pub.publish(Twist())
+                return
+            
+            # Get current robot state
+            robot_state = np.array([
+                self.robot_position[0],
+                self.robot_position[1],
+                self.robot_orientation
+            ])
+            
+            # Decide action based on exploration phase
+            if self.check_exploration_phase() or not self.is_goal_active:
+                linear_vel, angular_vel = self.get_exploration_action()
+                self.exploration_steps += 1
+            else:
+                # Use normal PPO policy for goal-directed movement
+                state = self.prepare_state_input()
+                with torch.no_grad():
+                    action, _ = self.ppo_model.get_action(state, deterministic=True)
+                linear_vel = float(action[0, 0].cpu())
+                angular_vel = float(action[0, 1].cpu())
+            
+            # Calculate reward
+            action = np.array([linear_vel, angular_vel])
+            reward = self.reward_system.get_reward(robot_state, self.latest_scan, action)
+            
+            # Enhanced debug logging
+            if self.debug_mode:
+                status = "RECOVERY" if self.in_recovery_mode else ("EXPLORATION" if self.exploration_phase else "NORMAL")
+                self.get_logger().debug(
+                    f"Step {self.exploration_steps}, Status: {status}, "
+                    f"Reward: {reward:.2f}, "
+                    f"Obstacle Distance: {obstacle_distance:.2f}"
+                )
+            
+            # Create and publish command
+            cmd_vel = Twist()
+            cmd_vel.linear.x = linear_vel
+            cmd_vel.angular.z = angular_vel
+            self.cmd_vel_pub.publish(cmd_vel)
+            
+            # Publish metrics every second
+            if self.exploration_steps % 10 == 0:  # Assuming 10Hz control loop
+                self.publish_metrics()
+            
+            # Check if goal is reached (if in normal operation)
+            if not self.exploration_phase and self.is_goal_active:
+                self.check_goal_reached()
+            
+        except Exception as e:
+            self.get_logger().error(f"Error in control loop: {str(e)}")
+            # Stop the robot in case of error
+            self.cmd_vel_pub.publish(Twist())
 
 def main(args=None):
     rclpy.init(args=args)
-    node = PPOController()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    node = OperatorNode()
+    
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    except Exception as e:
+        node.get_logger().error(f"Node error: {str(e)}")
+    finally:
+        # Ensure robot stops when node shuts down
+        node.cmd_vel_pub.publish(Twist())
+        node.destroy_node()
+        rclpy.shutdown()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
