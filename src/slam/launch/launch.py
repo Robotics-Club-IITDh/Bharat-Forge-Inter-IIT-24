@@ -193,7 +193,7 @@ def generate_launch_description():
             slam_config,
             {
                 'use_sim_time': use_sim_time,
-                'scan_topic': PythonExpression(['"/', namespace, '/scan"']),
+                'scan_topic': PythonExpression(['"/', namespace, '/filtered_scan"']),
                 'base_frame': PythonExpression(['"', namespace, '/base_link"']),
                 'odom_frame': PythonExpression(['"', namespace, '/odom"']),
             }
@@ -215,20 +215,26 @@ def generate_launch_description():
         output='screen'
         )
 
+    laser_filter_node = Node(
+        package='slam',
+        executable='laser_filter',
+        name='laser_filter',
+        namespace=namespace,
+        parameters=[{
+            'scan_topic': 'scan',
+            'buffer_size': 5,
+            'distance_threshold': 0.3,
+            'persistence_threshold': 3,
+            'min_static_readings': 4,
+            'pub_rate': 10,  # Control publishing rate
+            'use_sim_time': use_sim_time
+        }],
+        remappings=[
+            ('filtered_scan', 'filtered_scan'),
+        ],
+        output='screen'
+        )
 
-    nav2_bringup_launch = IncludeLaunchDescription(
-                    PythonLaunchDescriptionSource([
-                        os.path.join(nav2_bringup_dir, 'launch', 'navigation_launch.py')
-                    ]), 
-                    launch_arguments={
-                        'namespace': namespace,
-                        'use_namespace': 'True',
-                        'params_file': nav2_params_file,
-                        'use_sim_time': 'True',
-                        'autostart': 'True',
-                        'map_topic': '/merged_map',
-                    }.items()
-                )
 
     # Create and return launch description
     ld = LaunchDescription([
@@ -253,7 +259,6 @@ def generate_launch_description():
         slam_toolbox_node,
         operator_node,
         # astar_controller_node,
-        # nav2_bringup_launch,
 
     ])
     
