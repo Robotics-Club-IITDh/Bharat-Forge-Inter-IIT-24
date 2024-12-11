@@ -8,6 +8,7 @@ import numpy as np
 import math
 import heapq
 from tf_transformations import euler_from_quaternion
+from sensor_msgs.msg import LaserScan 
 
 class Cell:
     def __init__(self):
@@ -25,7 +26,6 @@ class AStarController(Node):
         self.odom_received = False
         self.pending_target = None
         
-            
         # Declare a parameter for the robot namespace (passed in at launch)
         self.robot_namespace = self.declare_parameter('robot_namespace', '').value
         
@@ -43,6 +43,14 @@ class AStarController(Node):
         self.path = []
         self.current_path_index = 0
         
+        # Obstacle detection parameters
+        self.emergency_stop_distance = 0.4  # meters
+        self.replanning_cooldown = 2.0  # seconds
+        self.last_replan_time = 0.0
+        self.latest_scan = None
+        self.min_lidar_distance = 1.0  # minimum safe distance from obstacles
+        self.scan_angle_window = math.pi/2  # Check ±45 degrees in front of robot
+
         # Map quality parameters
         self.min_map_coverage = 0.1  # Minimum fraction of known cells required
         self.map_ready = False  # Flag to indicate if map is ready for navigation
@@ -52,9 +60,13 @@ class AStarController(Node):
         # Robot control parameters - Tuned for smoother movement
         self.linear_speed = 0.5  # m/s
         self.angular_speed = 0.5  # rad/s
-        self.position_tolerance = 0.2  # meters
+        self.position_tolerance = 0.1  # meters
         self.angle_tolerance = 0.15  # radians
         
+
+        self.last_replan_time = None
+        self.replanning_cooldown = 1.0  # or whatever value you want for cooldown in seconds
+
         # Create global subscribers
         # Global map topic
         self.create_subscription(
@@ -150,9 +162,23 @@ class AStarController(Node):
             self.odom_callback,
             10
         )
+
+        scan_topic = f'/{self.robot_name}/scan'
+        self.scan_sub = self.create_subscription(
+            LaserScan,
+            scan_topic,
+            self.scan_callback,
+            10
+        )
+        self.get_logger().info(f'Subscribing to scan topic: {scan_topic}')
         
         self.get_logger().info('Set up robot-specific publishers and subscribers')
     
+    def scan_callback(self, msg):
+        """Handle new LiDAR scan data"""
+        self.latest_scan = msg
+
+
     def odom_callback(self, msg):
         """Handle odometry updates"""
         # Extract position
@@ -189,10 +215,11 @@ class AStarController(Node):
             # Store target for later use
             self.pending_target = (msg.x, msg.y)
             return
-            
+                
         self.target_position = (msg.x, msg.y)
         self.get_logger().info(f'Received new target: {self.target_position}')
         
+        # Add detailed logging for each check
         if not self.current_position:
             self.get_logger().warn('No odometry data received yet. Will plan path once odometry is available.')
             return
@@ -201,16 +228,26 @@ class AStarController(Node):
             self.get_logger().warn('No map data available yet')
             return
 
+        # Print current map quality values
+        self.get_logger().info(f'Current map coverage: {self.current_coverage:.2f}, Required: {self.min_map_coverage}')
         if not self.check_map_quality():
             self.get_logger().warn(f'Map quality insufficient for navigation. Coverage: {self.current_coverage:.2f}')
             return
-            
+                
         if not self.check_target_area_mapped():
             self.get_logger().warn('Target area not sufficiently mapped')
+            self.get_logger().info(f'Target position in grid coordinates: {self.world_to_grid(*self.target_position)}')
             return
 
-        self.get_logger().info('Planning path...')
+        self.get_logger().info('All checks passed, planning path...')
+        self.get_logger().info(f'Planning path from {self.current_position} to {self.target_position}')
         self.plan_path()
+
+        # Log path planning result
+        if self.path:
+            self.get_logger().info(f'Successfully planned path with {len(self.path)} waypoints')
+        else:
+            self.get_logger().warn('Failed to plan a path to target')
         
     def map_callback(self, msg):
         """Handle map updates"""
@@ -268,6 +305,33 @@ class AStarController(Node):
         """Calculate heuristic value (Euclidean distance)"""
         return math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
     
+    def check_for_obstacles(self):
+        """Check for obstacles using LiDAR scan data"""
+        if not self.latest_scan:
+            self.get_logger().warn('No LiDAR scan data available - stopping for safety')
+            return True
+
+        # For full 360 degrees, check all indices
+        for i in range(len(self.latest_scan.ranges)):
+            range_val = self.latest_scan.ranges[i]
+            
+            # Skip invalid measurements
+            if math.isnan(range_val) or math.isinf(range_val):
+                continue
+            if range_val < self.latest_scan.range_min:
+                self.get_logger().warn(f'Very close obstacle detected!')
+                return True
+            if range_val > self.latest_scan.range_max:
+                continue
+                
+            # If any measurement is closer than minimum safe distance
+            if range_val < self.min_lidar_distance:
+                angle = self.latest_scan.angle_min + (i * self.latest_scan.angle_increment)
+                self.get_logger().warn(f'Obstacle detected at {range_val:.2f}m, angle: {math.degrees(angle):.1f}°')
+                return True
+                
+        return False
+
     def plan_path(self):
         """Plan path using A* algorithm"""
         if not all([self.map_data, self.current_position, self.target_position]):
@@ -357,27 +421,90 @@ class AStarController(Node):
         path.reverse()
         return path
     
-    def control_loop(self):
-        # Add diagnostic logging
-        if not self.path:
-            self.get_logger().debug('No path available')
-            return
-        if not self.current_position:
-            self.get_logger().debug('No current position available')
-            return
-        if not self.cmd_vel_pub:
-            self.get_logger().debug('cmd_vel publisher not initialized')
-            return
-        if not self.current_path_index < len(self.path):
-            self.get_logger().debug('Current path index out of bounds')
-            return
+    def get_front_sector_ranges(self, scan: LaserScan, angle_range: float = math.pi/4):
+        """
+        Extract ranges from the front sector of the LiDAR scan
+        """
+        # Convert angle to index
+        start_index = int((scan.angle_min + math.pi/2 - angle_range/2 - scan.angle_min) / scan.angle_increment)
+        end_index = int((scan.angle_min + math.pi/2 + angle_range/2 - scan.angle_min) / scan.angle_increment)
+        
+        # Filter out inf and nan values
+        front_ranges = [
+            r for r in scan.ranges[start_index:end_index] 
+            if r != float('inf') and not math.isnan(r)
+        ]
+        
+        return front_ranges
 
-        """Main control loop for robot movement"""
-        if not all([self.path, self.current_position, 
-                    self.current_path_index < len(self.path), 
-                    self.cmd_vel_pub]):
+    def avoid_obstacle(self, scan: LaserScan):
+        """
+        Enhanced obstacle avoidance strategy with dynamic speed adjustment
+        """
+        avoid_cmd = Twist()
+        
+        # Get ranges from different sectors
+        front_ranges = self.get_front_sector_ranges(scan, angle_range=math.pi/4)
+        left_ranges = scan.ranges[:len(scan.ranges)//3]
+        right_ranges = scan.ranges[2*len(scan.ranges)//3:]
+        
+        min_front = min(front_ranges) if front_ranges else float('inf')
+        min_left = min([r for r in left_ranges if not math.isnan(r) and not math.isinf(r)], default=float('inf'))
+        min_right = min([r for r in right_ranges if not math.isnan(r) and not math.isinf(r)], default=float('inf'))
+        
+        # Dynamic speed adjustment based on obstacle proximity
+        linear_speed = min(0.2, max(0.1, min_front - 0.3))  # Scale speed with distance
+        
+        # Decision making for avoidance direction
+        if min_front < 0.5:  # If obstacle is close in front
+            avoid_cmd.linear.x = linear_speed
+            
+            # Choose rotation direction based on more free space
+            if min_left > min_right:
+                avoid_cmd.angular.z = 0.8  # Stronger rotation when closer
+            else:
+                avoid_cmd.angular.z = -0.8
+        else:
+            # More gentle avoidance when obstacle is further
+            avoid_cmd.linear.x = linear_speed
+            if min_left > min_right:
+                avoid_cmd.angular.z = -0.4
+            else:
+                avoid_cmd.angular.z = 0.4
+        
+        return avoid_cmd
+
+    def control_loop(self):
+        """Main control loop for robot movement with integrated obstacle avoidance"""
+        if not all([self.path, self.current_position, self.cmd_vel_pub]):
             return
             
+        if not self.current_path_index < len(self.path):
+            return
+
+        # Initialize stop command in case needed
+        stop_cmd = Twist()
+
+        # Check for obstacles using LiDAR
+        if self.latest_scan and self.check_for_obstacles():
+            self.get_logger().warn('Obstacle detected - initiating avoidance maneuver')
+            
+            # Execute obstacle avoidance
+            avoid_cmd = self.avoid_obstacle(self.latest_scan)
+            self.cmd_vel_pub.publish(avoid_cmd)
+            
+            # Check if we should replan
+            current_time = self.get_clock().now()
+            if self.last_replan_time is None:
+                self.last_replan_time = current_time
+            else:
+                cooldown_duration = rclpy.duration.Duration(seconds=self.replanning_cooldown)
+                if (current_time - self.last_replan_time) > cooldown_duration:
+                    self.get_logger().info('Replanning path after avoidance maneuver...')
+                    self.last_replan_time = current_time
+                    self.plan_path()
+            return
+
         # Get current target point from path
         target = self.path[self.current_path_index]
         
@@ -386,59 +513,50 @@ class AStarController(Node):
         dy = target[1] - self.current_position[1]
         distance = math.sqrt(dx*dx + dy*dy)
 
-        # Check if we're at final target and close enough
+        # Check if reached final target
         if self.current_path_index == len(self.path) - 1 and distance < self.position_tolerance:
-            self.get_logger().info('\n' + '='*50)
-            self.get_logger().info('TARGET REACHED SUCCESSFULLY!')
-            self.get_logger().info(f'Final position error: {distance:.3f} meters')
-            self.get_logger().info('='*50 + '\n')
-            self.path = []  # Clear path to stop movement
-            
-            # Stop the robot
-            cmd_vel = Twist()
-            self.cmd_vel_pub.publish(cmd_vel)
+            self.get_logger().info('Target reached successfully!')
+            self.path = []
+            self.cmd_vel_pub.publish(stop_cmd)
             return
 
+        # Calculate target angle and angle difference
         target_angle = math.atan2(dy, dx)
-        
-        # Calculate angle difference
         angle_diff = target_angle - self.current_orientation
-        # Normalize angle
-        while angle_diff > math.pi:
-            angle_diff -= 2 * math.pi
-        while angle_diff < -math.pi:
-            angle_diff += 2 * math.pi
+        
+        # Normalize angle difference
+        while angle_diff > math.pi: angle_diff -= 2 * math.pi
+        while angle_diff < -math.pi: angle_diff += 2 * math.pi
             
-        # Create and publish velocity command
+        # Create velocity command
         cmd_vel = Twist()
         
-        # Use proportional control for both rotation and forward movement
+        # Rotation phase - align with target
         if abs(angle_diff) > self.angle_tolerance:
-            # Rotate with proportional control
             cmd_vel.angular.z = self.angular_speed * (angle_diff / math.pi)
-            # Cap the rotation speed
             cmd_vel.angular.z = max(min(cmd_vel.angular.z, self.angular_speed), -self.angular_speed)
+        
+        # Movement phase - proceed to target
         else:
-            # Move forward and make small angle corrections
             if distance > self.position_tolerance:
-                # Forward speed proportional to distance, but with a minimum speed
+                # Forward speed proportional to distance
                 speed_factor = min(distance, 1.0)
                 cmd_vel.linear.x = self.linear_speed * speed_factor
+                
                 # Small angle corrections while moving
                 cmd_vel.angular.z = 0.3 * angle_diff
+                
+            # Reached current waypoint
             else:
-                # Move to next waypoint
                 self.current_path_index += 1
                 if self.current_path_index >= len(self.path):
                     self.get_logger().info('Completed all waypoints')
                     self.path = []
-                else:
-                    self.get_logger().info(f'Moving to waypoint {self.current_path_index + 1}/{len(self.path)}')
-    
-        self.get_logger().debug(f'Distance to target: {distance:.2f}, Angle diff: {math.degrees(angle_diff):.2f} degrees')
-        self.get_logger().debug(f'Cmd_vel - linear: {cmd_vel.linear.x:.2f}, angular: {cmd_vel.angular.z:.2f}')
+                return
         
+        # Publish velocity command
         self.cmd_vel_pub.publish(cmd_vel)
+
 
 def main(args=None):
     rclpy.init(args=args)
