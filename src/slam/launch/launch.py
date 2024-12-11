@@ -259,6 +259,7 @@ def generate_launch_description():
         slam_toolbox_node,
         operator_node,
         # astar_controller_node,
+        laser_filter_node,
 
     ])
     
