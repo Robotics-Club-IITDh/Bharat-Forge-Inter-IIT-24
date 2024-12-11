@@ -20,7 +20,12 @@ class Cell:
 class AStarController(Node):
     def __init__(self):
         super().__init__('astar_controller')
+
+            # Add flag for tracking subscription status
+        self.odom_received = False
+        self.pending_target = None
         
+            
         # Declare a parameter for the robot namespace (passed in at launch)
         self.robot_namespace = self.declare_parameter('robot_namespace', '').value
         
@@ -134,50 +139,78 @@ class AStarController(Node):
         # Once we have the robot_name, set up publishers and subscribers for that robot
         # Because the node is launched in the controller namespace (robot_namespace), we can use relative topics.
         # This will resolve to /<robot_namespace>/cmd_vel and /<robot_namespace>/odom
+        # Fix: Use fully qualified topic name with namespace
+        odom_topic = f'/{self.robot_name}/odom'
+        self.get_logger().info(f'Subscribing to odometry topic: {odom_topic}')
+        
         self.cmd_vel_pub = self.create_publisher(Twist, 'cmd_vel', 10)
-        self.create_subscription(
+        self.odom_sub = self.create_subscription(
             Odometry,
-            'odom',
+            odom_topic,  # Now using the full topic name
             self.odom_callback,
             10
         )
         
         self.get_logger().info('Set up robot-specific publishers and subscribers')
+    
+    def odom_callback(self, msg):
+        """Handle odometry updates"""
+        # Extract position
+        self.current_position = (
+            msg.pose.pose.position.x,
+            msg.pose.pose.position.y
+        )
+        
+        # Extract orientation (convert quaternion to Euler angles)
+        orientation_q = msg.pose.pose.orientation
+        orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
+        _, _, yaw = euler_from_quaternion(orientation_list)
+        self.current_orientation = yaw
+
+        # If this is the first odometry message received
+        if not self.odom_received:
+            self.odom_received = True
+            self.get_logger().info('First odometry message received')
             
+            # If there was a pending target, process it now
+            if self.pending_target:
+                self.get_logger().info('Processing pending target')
+                target_msg = Point()
+                target_msg.x = self.pending_target[0]
+                target_msg.y = self.pending_target[1]
+                self.target_callback(target_msg)
+                self.pending_target = None
+
     def target_callback(self, msg):
         """Handle new target position"""
+        # Check if odometry subscription is ready
+        if not hasattr(self, 'odom_sub'):
+            self.get_logger().warn('Received target but odometry subscription not yet setup. Waiting for robot selection...')
+            # Store target for later use
+            self.pending_target = (msg.x, msg.y)
+            return
+            
         self.target_position = (msg.x, msg.y)
         self.get_logger().info(f'Received new target: {self.target_position}')
         
+        if not self.current_position:
+            self.get_logger().warn('No odometry data received yet. Will plan path once odometry is available.')
+            return
+
         if not self.map_data:
             self.get_logger().warn('No map data available yet')
             return
-        
+
         if not self.check_map_quality():
-            self.get_logger().warn(f'Map quality insufficient for navigation. Coverage: {self.get_map_coverage():.2f}')
+            self.get_logger().warn(f'Map quality insufficient for navigation. Coverage: {self.current_coverage:.2f}')
             return
             
         if not self.check_target_area_mapped():
             self.get_logger().warn('Target area not sufficiently mapped')
             return
 
-        if not self.current_position:
-            self.get_logger().warn('No odometry data received yet')
-            return
-            
-        self.get_logger().info('Map ready for navigation, planning path...')
+        self.get_logger().info('Planning path...')
         self.plan_path()
-    
-    def odom_callback(self, msg):
-        """Handle odometry updates"""
-        self.current_position = (
-            msg.pose.pose.position.x,
-            msg.pose.pose.position.y
-        )
-        orientation = msg.pose.pose.orientation
-        _, _, self.current_orientation = euler_from_quaternion(
-            [orientation.x, orientation.y, orientation.z, orientation.w]
-        )
         
     def map_callback(self, msg):
         """Handle map updates"""
