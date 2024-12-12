@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="moving_bot">
+    <xacro:arg name="namespace" default="moving_bot"/>
+    
+    <!-- Remove initial pose arguments as we'll handle this in spawn -->
+    <xacro:property name="robot_namespace" value="$(arg namespace)"/>
+    
+    <!-- Include the components -->
+    <xacro:include filename="moving_bot_base.xacro"/>
+    <xacro:include filename="wheels.xacro"/>
+    <xacro:include filename="gazebo_plugins.xacro"/>
+    
+    <!-- Create the robot without position offsets -->
+    <xacro:base namespace="${robot_namespace}" x="0" y="0" z="0"/>
+    <xacro:wheels namespace="${robot_namespace}"/>
+    <xacro:gazebo_plugins namespace="${robot_namespace}"/>
+</robot>

@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <!-- Define materials -->
+    <material name="blue">
+        <color rgba="0 0 1 1"/>
+    </material>
+    <material name="red">
+        <color rgba="1 0 0 1"/>
+    </material>
+    <material name="black">
+        <color rgba="0 0 0 1"/>
+    </material>
+    <material name="gray">
+        <color rgba="0.33 0.33 0.33 1"/>
+    </material>
+
+    <!-- Base macro definition with taller height -->
+    <xacro:macro name="base" params="namespace x y z">
+        <!-- Odom Link -->
+        <link name="${namespace}/odom"/>
+
+        <!-- Base Link - Modified to be taller -->
+        <link name="${namespace}/base_link">
+            <visual>
+                <geometry>
+                    <box size="0.4 0.3 1.0"/>  <!-- Changed height from 0.1 to 1.0 -->
+                </geometry>
+                <material name="red"/>  <!-- Changed color to red to distinguish it -->
+                <origin xyz="0 0 0.5"/>  <!-- Moved origin up by half height to keep wheels at bottom -->
+            </visual>
+            <collision>
+                <geometry>
+                    <box size="0.4 0.3 1.0"/>  <!-- Matching collision geometry -->
+                </geometry>
+                <origin xyz="0 0 0.5"/>  <!-- Matching collision origin -->
+            </collision>
+            <inertial>
+                <mass value="5.0"/>  <!-- Increased mass for the taller structure -->
+                <origin xyz="0 0 0.5"/>
+                <inertia 
+                    ixx="0.43" ixy="0.0" ixz="0.0"
+                    iyy="0.43" iyz="0.0" izz="0.05"
+                />
+            </inertial>
+        </link>
+
+        <!-- Odom Joint -->
+        <joint name="${namespace}/odom_joint" type="fixed">
+            <parent link="${namespace}/odom"/>
+            <child link="${namespace}/base_link"/>
+            <origin xyz="${x} ${y} ${z}" rpy="0 0 0"/>
+        </joint>
+    </xacro:macro>
+</robot>
