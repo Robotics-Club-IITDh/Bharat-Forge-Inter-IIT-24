@@ -9,7 +9,7 @@ from launch_ros.actions import Node
 def generate_launch_description():
 
     pkg_dir = get_package_share_directory('robot_gazebo')
-    default_world = os.path.join(pkg_dir, 'world', 'empty.world')
+    default_world = os.path.join(pkg_dir, 'world', 'factory.world')
 
     world_arg = DeclareLaunchArgument('world', default_value=default_world)
     world_file = LaunchConfiguration('world')
