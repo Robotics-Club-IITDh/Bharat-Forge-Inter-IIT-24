@@ -22,7 +22,11 @@ class AStarController(Node):
     def __init__(self):
         super().__init__('astar_controller')
 
-            # Add flag for tracking subscription status
+        self.waypoint_spacing = 1.0  # meters between waypoints
+        self.path_smoothing_factor = 0.25  # controls how much to smooth the path
+        self.min_corner_angle = math.pi/6  # minimum angle to consider as a corner
+
+        # Add flag for tracking subscription status
         self.odom_received = False
         self.pending_target = None
         
@@ -48,8 +52,8 @@ class AStarController(Node):
         self.replanning_cooldown = 2.0  # seconds
         self.last_replan_time = 0.0
         self.latest_scan = None
-        self.min_lidar_distance = 1.0  # minimum safe distance from obstacles
-        self.scan_angle_window = math.pi/2  # Check ±45 degrees in front of robot
+        self.min_lidar_distance = 0.6  # minimum safe distance from obstacles
+        self.scan_angle_window = math.pi  # Check ±45 degrees in front of robot
 
         # Map quality parameters
         self.min_map_coverage = 0.1  # Minimum fraction of known cells required
@@ -332,6 +336,98 @@ class AStarController(Node):
                 
         return False
 
+    def is_near_obstacle(self, point):
+        """Check if a point is near any obstacles"""
+        grid_point = self.world_to_grid(*point)
+        if not grid_point:
+            return False
+            
+        check_radius = int(self.safety_margin / self.map_data.info.resolution)
+        
+        for dx in range(-check_radius, check_radius + 1):
+            for dy in range(-check_radius, check_radius + 1):
+                check_x = grid_point[0] + dx
+                check_y = grid_point[1] + dy
+                
+                if not (0 <= check_x < self.map_data.info.width and 
+                    0 <= check_y < self.map_data.info.height):
+                    continue
+                    
+                idx = check_y * self.map_data.info.width + check_x
+                if self.map_data.data[idx] > 50:  # Obstacle detected
+                    return True
+        return False
+
+    def reduce_waypoints(self, raw_path):
+        """Reduce the number of waypoints while maintaining path integrity"""
+        if len(raw_path) < 3:
+            return raw_path
+            
+        reduced_path = [raw_path[0]]  # Always keep start point
+        current_distance = 0
+        last_significant_angle = 0
+        
+        for i in range(1, len(raw_path) - 1):
+            # Calculate angles between consecutive segments
+            prev_vector = (
+                raw_path[i][0] - raw_path[i-1][0],
+                raw_path[i][1] - raw_path[i-1][1]
+            )
+            next_vector = (
+                raw_path[i+1][0] - raw_path[i][0],
+                raw_path[i+1][1] - raw_path[i][1]
+            )
+            
+            # Calculate angle between vectors
+            angle = math.atan2(
+                prev_vector[0] * next_vector[1] - prev_vector[1] * next_vector[0],
+                prev_vector[0] * next_vector[0] + prev_vector[1] * next_vector[1]
+            )
+            
+            # Calculate distance from last waypoint
+            dist_from_last = math.sqrt(
+                (raw_path[i][0] - reduced_path[-1][0])**2 +
+                (raw_path[i][1] - reduced_path[-1][1])**2
+            )
+            
+            # Add waypoint if:
+            # 1. We've exceeded the minimum spacing, or
+            # 2. There's a significant turn, or
+            # 3. The point is near an obstacle
+            if (dist_from_last >= self.waypoint_spacing or
+                abs(angle) >= self.min_corner_angle or
+                self.is_near_obstacle(raw_path[i])):
+                reduced_path.append(raw_path[i])
+                current_distance = 0
+            
+        reduced_path.append(raw_path[-1])  # Always keep end point
+        return self.smooth_path(reduced_path)
+
+    def smooth_path(self, path):
+        """Apply path smoothing to create more natural trajectories"""
+        if len(path) < 3:
+            return path
+            
+        smoothed = list(path)  # Create a copy to modify
+        
+        for _ in range(5):  # Number of smoothing iterations
+            for i in range(1, len(smoothed) - 1):
+                # Calculate new position
+                smoothed[i] = (
+                    smoothed[i][0] + self.path_smoothing_factor * (
+                        0.5 * (smoothed[i-1][0] + smoothed[i+1][0]) - smoothed[i][0]
+                    ),
+                    smoothed[i][1] + self.path_smoothing_factor * (
+                        0.5 * (smoothed[i-1][1] + smoothed[i+1][1]) - smoothed[i][1]
+                    )
+                )
+                
+                # Ensure smoothed point doesn't create collision
+                if self.is_near_obstacle(smoothed[i]):
+                    smoothed[i] = path[i]  # Revert to original point
+                    
+        return smoothed
+
     def plan_path(self):
         """Plan path using A* algorithm"""
         if not all([self.map_data, self.current_position, self.target_position]):
@@ -404,22 +500,25 @@ class AStarController(Node):
                                    (neighbor_cell.f, neighbor_i, neighbor_j))
         
         self.get_logger().warn('No path found to target')
-    
+        
     def reconstruct_path(self, cell_details, goal):
-        """Reconstruct path from cell details"""
-        path = []
+        """Reconstruct path from cell details with reduced waypoints"""
+        # First get the complete path
+        raw_path = []
         current = goal
         
         while cell_details[current[0]][current[1]].parent_i != current[0] or \
-              cell_details[current[0]][current[1]].parent_j != current[1]:
-            path.append(self.grid_to_world(current[0], current[1]))
+            cell_details[current[0]][current[1]].parent_j != current[1]:
+            raw_path.append(self.grid_to_world(current[0], current[1]))
             temp = current
             current = (cell_details[temp[0]][temp[1]].parent_i,
-                       cell_details[temp[0]][temp[1]].parent_j)
+                    cell_details[temp[0]][temp[1]].parent_j)
         
-        path.append(self.grid_to_world(current[0], current[1]))
-        path.reverse()
-        return path
+        raw_path.append(self.grid_to_world(current[0], current[1]))
+        raw_path.reverse()
+        
+        # Now reduce the waypoints
+        return self.reduce_waypoints(raw_path)
     
     def get_front_sector_ranges(self, scan: LaserScan, angle_range: float = math.pi/4):
         """
@@ -453,7 +552,7 @@ class AStarController(Node):
         min_right = min([r for r in right_ranges if not math.isnan(r) and not math.isinf(r)], default=float('inf'))
         
         # Dynamic speed adjustment based on obstacle proximity
-        linear_speed = min(0.2, max(0.1, min_front - 0.3))  # Scale speed with distance
+        linear_speed = min(0.4, max(0.1, min_front - 0.3))  # Scale speed with distance
         
         # Decision making for avoidance direction
         if min_front < 0.5:  # If obstacle is close in front
